@@ -1,0 +1,156 @@
+@rendermode InteractiveServer
+
+@page "/dev-data-test"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using System.Security.Claims
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ICampaignService Campaigns
+
+<h3>Dev Data Test</h3>
+
+<p><b>UserId:</b> @_userId</p>
+
+<button class="btn btn-primary" @onclick="CreateCampaign">Create Test Campaign</button>
+
+<p><b>Status:</b> @_status</p>
+
+@if (_loading)
+{
+    <p>Loading...</p>
+}
+else if (_items.Count == 0)
+{
+    <p>No campaigns yet.</p>
+}
+else
+{
+    <ul>
+        @foreach (var c in _items)
+        {
+            <li style="margin-bottom:8px;">
+                <b>@c.Name</b> (@c.System) - @c.CreatedUtc.ToLocalTime()
+
+                <button class="btn btn-sm btn-secondary ms-2" @onclick="() => RenameCampaign(c.Id)">
+                    Rename
+                </button>
+
+                <button class="btn btn-sm btn-danger ms-2" @onclick="() => DeleteCampaign(c.Id)">
+                    Delete
+                </button>
+            </li>
+        }
+    </ul>
+
+}
+
+@code {
+    private string _userId = "";
+    private string _status = "init";
+    private bool _loading = true;
+    private List<Campaign> _items = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _status = "Getting auth state...";
+            var state = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = state.User;
+
+            _userId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+            _status = $"Auth OK. userId={(string.IsNullOrWhiteSpace(_userId) ? "[EMPTY]" : _userId)}";
+
+            await Refresh();
+        }
+        catch (Exception ex)
+        {
+            _status = "Init error: " + ex.Message;
+        }
+    }
+
+    private async Task Refresh()
+    {
+        try
+        {
+            _loading = true;
+            _status = "Loading campaigns...";
+            _items = await Campaigns.GetForUserAsync(_userId);
+            _status = $"Loaded {_items.Count} campaigns.";
+        }
+        catch (Exception ex)
+        {
+            _status = "Refresh error: " + ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task CreateCampaign()
+    {
+        try
+        {
+            _status = "Create clicked...";
+
+            var c = new Campaign
+            {
+                Name = "Test Campaign " + DateTime.Now.ToString("HH:mm:ss"),
+                System = "D&D 5e",
+                Description = "Created from /dev-data-test"
+            };
+
+            await Campaigns.CreateAsync(c, _userId);
+            _status = "Created! Refreshing...";
+
+            await Refresh();
+        }
+        catch (Exception ex)
+        {
+            _status = "Create error: " + ex.Message;
+        }
+    }
+    private async Task RenameCampaign(int campaignId)
+{
+    try
+    {
+        _status = "Renaming...";
+        var updated = new Campaign
+        {
+            Id = campaignId,
+            Name = "Renamed " + DateTime.Now.ToString("HH:mm:ss"),
+            System = "D&D 5e",
+            Description = "Renamed from /dev-data-test"
+        };
+
+        var ok = await Campaigns.UpdateAsync(updated, _userId);
+        _status = ok ? "Rename OK" : "Rename failed (not owner?)";
+
+        await Refresh();
+    }
+    catch (Exception ex)
+    {
+        _status = "Rename error: " + ex.Message;
+    }
+}
+    private async Task DeleteCampaign(int campaignId)
+    {
+        try
+        {
+            _status = "Deleting...";
+            var ok = await Campaigns.DeleteAsync(campaignId, _userId);
+            _status = ok ? "Delete OK" : "Delete failed (not owner?)";
+
+            await Refresh();
+        }
+        catch (Exception ex)
+        {
+            _status = "Delete error: " + ex.Message;
+        }
+    }
+
+}
