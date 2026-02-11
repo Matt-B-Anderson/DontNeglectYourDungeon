@@ -28,7 +28,9 @@
 
 @if (_loading)
 {
-    <div class="tavern-card"><div class="muted">Loading…</div></div>
+    <div class="tavern-card">
+        <div class="muted">Loading…</div>
+    </div>
 }
 else if (_campaign is null)
 {
@@ -43,8 +45,10 @@ else
 {
     <div class="grid-2">
         <div class="tavern-card">
-            <div style="font-weight:800;">Sessions</div>
-            <div class="muted" style="margin-top:.25rem;">Coming next: schedule, view, and notes editor.</div>
+            <div style="display:flex; gap:.75rem; margin-top:1rem;">
+                <a class="btn" href="@($"/campaigns/{Id}/sessions")">View Sessions</a>
+                <a class="btn" href="@($"/campaigns/{Id}/sessions/new")">+ Schedule</a>
+            </div>
 
             <div style="margin-top:1rem;">
                 <div class="muted">Total sessions: @_campaign.Sessions.Count</div>

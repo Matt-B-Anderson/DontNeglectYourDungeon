@@ -13,7 +13,7 @@ public class Session
     public string Title { get; set; } = "Session";
 
     [Required]
-    public DateTime ScheduledAt { get; set; } = DateTime.UtcNow;
+    public DateTime ScheduledAtUtc { get; set; } = DateTime.UtcNow;
 
     [StringLength(200)]
     public string? LocationOrLink { get; set; }

@@ -1,0 +1,107 @@
+@page "/sessions/{SessionId:int}/delete"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using DontNeglectYourDungeon.Services
+@inject ISessionService SessionsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🗑</div>
+        <div>
+            <h1 class="h1">Delete Session</h1>
+            <div class="muted">This cannot be undone.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_notFound)
+    {
+        <div class="validation-message">Session not found (or you don’t have access).</div>
+    }
+    else
+    {
+        <div style="font-weight:800;">@_title</div>
+        <div class="muted" style="margin-top:.35rem;">@_when</div>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="validation-message" style="margin-top:.75rem;">@_error</div>
+        }
+
+        <div style="display:flex; gap:.75rem; margin-top:1rem;">
+            <button class="btn btn-danger" disabled="@_deleting" @onclick="DeleteAsync">Yes, delete</button>
+            <a class="btn" href="@_cancelHref">Cancel</a>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int SessionId { get; set; }
+
+    private bool _loading = true;
+    private bool _deleting;
+    private bool _notFound;
+    private string _error = string.Empty;
+
+    private string _title = "Session";
+    private string _when = "";
+    private string _cancelHref = "/campaigns";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+        _error = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var session = await SessionsService.GetByIdAsync(auth.User, SessionId);
+
+        if (session is null)
+        {
+            _notFound = true;
+            _loading = false;
+            return;
+        }
+
+        _title = session.Title;
+        _when = session.ScheduledAtUtc.ToLocalTime().ToString("ddd, MMM d · h:mm tt");
+        _cancelHref = $"/sessions/{SessionId}";
+
+        _loading = false;
+    }
+
+    private async Task DeleteAsync()
+    {
+        _deleting = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var ok = await SessionsService.DeleteAsync(auth.User, SessionId);
+
+            if (!ok)
+            {
+                _error = "Could not delete—session not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo("/campaigns");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _deleting = false;
+        }
+    }
+}

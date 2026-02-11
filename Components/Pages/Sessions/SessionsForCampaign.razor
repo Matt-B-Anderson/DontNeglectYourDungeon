@@ -1,0 +1,130 @@
+@page "/campaigns/{CampaignId:int}/sessions"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Models
+@inject ISessionService SessionsService
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🗓</div>
+        <div>
+            <h1 class="h1">Sessions</h1>
+            <div class="muted">@(_campaignName ?? "Campaign")</div>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:.5rem;">
+        <a class="btn" href="@($"/campaigns/{CampaignId}/sessions/new")">+ Schedule</a>
+        <a class="btn" href="@($"/campaigns/{CampaignId}")">Back</a>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading sessions…</div>
+    }
+    else if (_noAccess)
+    {
+        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+    }
+    else if (_sessions.Count == 0)
+    {
+        <div class="muted">No sessions yet.</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="@($"/campaigns/{CampaignId}/sessions/new")">Schedule the first session</a>
+        </div>
+    }
+    else
+    {
+        <div class="grid-2">
+            <div>
+                <div style="font-weight:800; margin-bottom:.5rem;">Upcoming</div>
+                @foreach (var s in _upcoming)
+                {
+                    <div class="tavern-card" style="background: var(--panel2);">
+                        <div style="display:flex; justify-content:space-between; gap:1rem;">
+                            <div>
+                                <div style="font-weight:800;">@s.Title</div>
+                                <div class="muted">@s.ScheduledAtUtc.ToLocalTime().ToString("ddd, MMM d · h:mm tt")</div>
+                                @if (!string.IsNullOrWhiteSpace(s.LocationOrLink))
+                                {
+                                    <div class="muted" style="margin-top:.25rem;">@s.LocationOrLink</div>
+                                }
+                            </div>
+                            <a class="btn" href="@($"/sessions/{s.Id}")">Open</a>
+                        </div>
+                    </div>
+                }
+                @if (_upcoming.Count == 0)
+                {
+                    <div class="muted">No upcoming sessions.</div>
+                }
+            </div>
+
+            <div>
+                <div style="font-weight:800; margin-bottom:.5rem;">Past</div>
+                @foreach (var s in _past)
+                {
+                    <div class="tavern-card" style="background: var(--panel2);">
+                        <div style="display:flex; justify-content:space-between; gap:1rem;">
+                            <div>
+                                <div style="font-weight:800;">@s.Title</div>
+                                <div class="muted">@s.ScheduledAtUtc.ToLocalTime().ToString("ddd, MMM d · h:mm tt")</div>
+                            </div>
+                            <a class="btn" href="@($"/sessions/{s.Id}")">Open</a>
+                        </div>
+                    </div>
+                }
+                @if (_past.Count == 0)
+                {
+                    <div class="muted">No past sessions.</div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int CampaignId { get; set; }
+
+    private bool _loading = true;
+    private bool _noAccess;
+    private string? _campaignName;
+    private List<Session> _sessions = new();
+    private List<Session> _upcoming = new();
+    private List<Session> _past = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _noAccess = false;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        // Confirm campaign access + get name
+        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, CampaignId);
+        if (campaign is null)
+        {
+            _noAccess = true;
+            _sessions = new();
+            _upcoming = new();
+            _past = new();
+            _loading = false;
+            return;
+        }
+
+        _campaignName = campaign.Name;
+
+        _sessions = await SessionsService.GetForCampaignAsync(auth.User, CampaignId);
+
+        var nowUtc = DateTime.UtcNow;
+        _upcoming = _sessions.Where(s => s.ScheduledAtUtc >= nowUtc).OrderBy(s => s.ScheduledAtUtc).ToList();
+        _past = _sessions.Where(s => s.ScheduledAtUtc < nowUtc).OrderByDescending(s => s.ScheduledAtUtc).ToList();
+
+        _loading = false;
+    }
+}

@@ -234,6 +234,26 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Sessions/SessionCreate.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXNzaW9uc1xTZXNzaW9uQ3JlYXRlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Sessions/SessionDelete.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXNzaW9uc1xTZXNzaW9uRGVsZXRlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Sessions/SessionDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXNzaW9uc1xTZXNzaW9uRGV0YWlsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Sessions/SessionEdit.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXNzaW9uc1xTZXNzaW9uRWRpdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Sessions/SessionsForCampaign.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXNzaW9uc1xTZXNzaW9uc0ZvckNhbXBhaWduLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Weather.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXZWF0aGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

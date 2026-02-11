@@ -1,3 +1,13 @@
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\EmbeddedAttribute.cs
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\ValidatableTypeAttribute.cs
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.csproj.AssemblyReference.cache
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\rpswa.dswa.cache.json
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.GeneratedMSBuildEditorConfig.editorconfig
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.AssemblyInfoInputs.cache
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.AssemblyInfo.cs
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.csproj.CoreCompileInputs.cache
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.MvcApplicationPartsAssemblyInfo.cache
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.sourcelink.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\appsettings.Development.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\appsettings.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\DontNeglectYourDungeon.staticwebassets.runtime.json
@@ -124,15 +134,6 @@ F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\runtimes\win-
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\runtimes\win-arm64\native\e_sqlite3.dll
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\runtimes\win-x64\native\e_sqlite3.dll
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\runtimes\win-x86\native\e_sqlite3.dll
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\EmbeddedAttribute.cs
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\ValidatableTypeAttribute.cs
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.csproj.AssemblyReference.cache
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\rpswa.dswa.cache.json
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.GeneratedMSBuildEditorConfig.editorconfig
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.AssemblyInfoInputs.cache
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.AssemblyInfo.cs
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.csproj.CoreCompileInputs.cache
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.MvcApplicationPartsAssemblyInfo.cache
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\rjimswa.dswa.cache.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
@@ -141,6 +142,7 @@ F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\scopedcss\Com
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\scopedcss\Components\Layout\ReconnectModal.razor.rz.scp.css
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\scopedcss\bundle\DontNeglectYourDungeon.styles.css
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\scopedcss\projectbundle\DontNeglectYourDungeon.bundle.scp.css
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\29u7ybtba9-{0}-0807azdk0h-0807azdk0h.gz
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\2hekhvdbsy-{0}-bqjiyaj88i-bqjiyaj88i.gz
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\mfvcqug0dt-{0}-c2jlpeoesf-c2jlpeoesf.gz
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\ba179tj3g3-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -202,6 +204,4 @@ F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\refint\DontNe
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.pdb
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.genruntimeconfig.cache
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\ref\DontNeglectYourDungeon.dll
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.sourcelink.json
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\29u7ybtba9-{0}-0807azdk0h-0807azdk0h.gz
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\Data\app.db

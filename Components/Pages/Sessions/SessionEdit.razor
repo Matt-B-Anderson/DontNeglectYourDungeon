@@ -1,0 +1,152 @@
+@page "/sessions/{SessionId:int}/edit"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Services
+@inject ISessionService SessionsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🧭</div>
+        <div>
+            <h1 class="h1">Edit Session</h1>
+            <div class="muted">Adjust the schedule; keep the party aligned.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_notFound)
+    {
+        <div class="validation-message">Session not found (or you don’t have access).</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="/campaigns">Return</a>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="_model" OnValidSubmit="@SaveAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div style="display:grid; gap:.75rem;">
+                <div>
+                    <label>Title</label>
+                    <InputText @bind-Value="_model.Title" />
+                    <ValidationMessage For="@(() => _model.Title)" />
+                </div>
+
+                <div>
+                    <label>Date &amp; Time</label>
+                    <input type="datetime-local" @bind="_model.ScheduledLocal" />
+                    <ValidationMessage For="@(() => _model.ScheduledLocal)" />
+                </div>
+
+                <div>
+                    <label>Location / Link (optional)</label>
+                    <InputText @bind-Value="_model.LocationOrLink" />
+                    <ValidationMessage For="@(() => _model.LocationOrLink)" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <div class="validation-message">@_error</div>
+                }
+
+                <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <button class="btn" type="submit" disabled="@_saving">Save</button>
+                    <a class="btn" href="@_cancelHref">Cancel</a>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public int SessionId { get; set; }
+
+    private bool _loading = true;
+    private bool _saving;
+    private bool _notFound;
+    private string _error = string.Empty;
+
+    private string _cancelHref = "/campaigns";
+
+    private SessionEditModel _model = new();
+
+    public class SessionEditModel
+    {
+        [Required, StringLength(100, MinimumLength = 2)]
+        public string Title { get; set; } = string.Empty;
+
+        // <input type="datetime-local"> uses: yyyy-MM-ddTHH:mm
+        [Required]
+       public DateTime ScheduledLocal { get; set; } = DateTime.Now;
+
+        [StringLength(200)]
+        public string? LocationOrLink { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+        _error = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var session = await SessionsService.GetByIdAsync(auth.User, SessionId);
+
+        if (session is null)
+        {
+            _notFound = true;
+            _loading = false;
+            return;
+        }
+
+        _model.Title = session.Title;
+        _model.ScheduledLocal = session.ScheduledAtUtc.ToLocalTime();
+        _model.LocationOrLink = session.LocationOrLink;
+
+        _cancelHref = $"/sessions/{SessionId}";
+        _loading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var ok = await SessionsService.UpdateAsync(
+                auth.User,
+                SessionId,
+                _model.Title,
+                _model.ScheduledLocal,
+                _model.LocationOrLink);
+
+            if (!ok)
+            {
+                _error = "Could not save—session not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo($"/sessions/{SessionId}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

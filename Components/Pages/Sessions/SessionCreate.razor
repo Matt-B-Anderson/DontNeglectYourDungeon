@@ -1,0 +1,146 @@
+@page "/campaigns/{CampaignId:int}/sessions/new"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Services
+@inject ISessionService SessionsService
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🕯</div>
+        <div>
+            <h1 class="h1">Schedule Session</h1>
+            <div class="muted">@(_campaignName ?? "Campaign")</div>
+        </div>
+    </div>
+
+    <a class="btn" href="@($"/campaigns/{CampaignId}/sessions")">Back</a>
+</div>
+
+<div class="tavern-card">
+    @if (_noAccess)
+    {
+        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+    }
+    else
+    {
+        <EditForm Model="_model" OnValidSubmit="@CreateAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div style="display:grid; gap:.75rem;">
+                <div>
+                    <label>Title</label>
+                    <InputText @bind-Value="_model.Title" />
+                    <ValidationMessage For="@(() => _model.Title)" />
+                </div>
+
+                <div>
+                    <label>Date &amp; Time</label>
+                    <input type="datetime-local" @bind="_model.ScheduledLocal" />
+                    <ValidationMessage For="@(() => _model.ScheduledLocal)" />
+                    <div class="muted" style="margin-top:.25rem;">
+                        Stored in UTC; displayed in your local time.
+                    </div>
+                </div>
+
+                <div>
+                    <label>Location / Link (optional)</label>
+                    <InputText @bind-Value="_model.LocationOrLink" />
+                    <ValidationMessage For="@(() => _model.LocationOrLink)" />
+                </div>
+
+                <div>
+                    <label>Notes (optional)</label>
+                    <InputTextArea @bind-Value="_model.Notes" rows="6" />
+                    <ValidationMessage For="@(() => _model.Notes)" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <div class="validation-message">@_error</div>
+                }
+
+                <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <button class="btn" type="submit" disabled="@_saving">Schedule</button>
+                    <a class="btn" href="@($"/campaigns/{CampaignId}/sessions")">Cancel</a>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public int CampaignId { get; set; }
+
+    private string? _campaignName;
+    private bool _noAccess;
+    private bool _saving;
+    private string _error = string.Empty;
+
+    private SessionCreateModel _model = new();
+
+    public class SessionCreateModel
+    {
+        [Required, StringLength(100, MinimumLength = 2)]
+        public string Title { get; set; } = "Session";
+
+        // <input type="datetime-local"> uses: yyyy-MM-ddTHH:mm
+        [Required]
+        public DateTime ScheduledLocal { get; set; } = DateTime.Now;
+
+        [StringLength(200)]
+        public string? LocationOrLink { get; set; }
+
+        [StringLength(8000)]
+        public string? Notes { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, CampaignId);
+
+        _noAccess = campaign is null;
+        _campaignName = campaign?.Name;
+    }
+
+    private async Task CreateAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            var sessionId = await SessionsService.CreateAsync(
+                auth.User,
+                CampaignId,
+                _model.Title,
+                _model.ScheduledLocal,
+                _model.LocationOrLink,
+                _model.Notes);
+
+            if (sessionId is null)
+            {
+                _error = "Could not create session—campaign not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo($"/sessions/{sessionId.Value}");
+        }
+        catch (Exception ex)
+        {
+            // This will catch ValidationException from the service if datetime format is invalid
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

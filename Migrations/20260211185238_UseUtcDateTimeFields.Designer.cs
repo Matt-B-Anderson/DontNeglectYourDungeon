@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DontNeglectYourDungeon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260211175944_UseUtcDateTimeFields")]
+    [Migration("20260211185238_UseUtcDateTimeFields")]
     partial class UseUtcDateTimeFields
     {
         /// <inheritdoc />
@@ -166,7 +166,7 @@ namespace DontNeglectYourDungeon.Migrations
                         .HasMaxLength(8000)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("ScheduledAt")
+                    b.Property<DateTime>("ScheduledAtUtc")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")

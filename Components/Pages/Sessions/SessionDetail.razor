@@ -1,0 +1,127 @@
+@page "/sessions/{SessionId:int}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Models
+@inject ISessionService SessionsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">📖</div>
+        <div>
+            <h1 class="h1">@(_session?.Title ?? "Session")</h1>
+            <div class="muted">@(_session is null ? "" : _session.ScheduledAtUtc.ToLocalTime().ToString("ddd, MMM d · h:mm tt"))</div>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:.5rem;">
+        @if (_session is not null)
+        {
+            <a class="btn" href="@($"/sessions/{SessionId}/edit")">Edit</a>
+            <a class="btn btn-danger" href="@($"/sessions/{SessionId}/delete")">Delete</a>
+            <a class="btn" href="@($"/campaigns/{_session.CampaignId}/sessions")">Back</a>
+        }
+        else
+        {
+            <a class="btn" href="/campaigns">Back</a>
+        }
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_session is null)
+    {
+        <div class="validation-message">Session not found (or you don’t have access).</div>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_session.LocationOrLink))
+        {
+            <div class="muted"><strong>Location/Link:</strong> @_session.LocationOrLink</div>
+            <div style="margin-top:.75rem;"></div>
+        }
+
+        <div style="font-weight:800;">Notes</div>
+        <div class="muted" style="margin-top:.25rem;">Write what happened; track loot, NPCs, and cliffhangers.</div>
+
+        <div style="margin-top:.75rem;">
+            <textarea rows="10" @bind="_notesDraft"></textarea>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_saveMsg))
+        {
+            <div class="muted" style="margin-top:.5rem;">@_saveMsg</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="validation-message" style="margin-top:.5rem;">@_error</div>
+        }
+
+        <div style="display:flex; gap:.75rem; margin-top:1rem;">
+            <button class="btn" disabled="@_saving" @onclick="SaveNotesAsync">Save Notes</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int SessionId { get; set; }
+
+    private bool _loading = true;
+    private bool _saving;
+    private string _error = string.Empty;
+    private string _saveMsg = string.Empty;
+
+    private Session? _session;
+    private string _notesDraft = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _error = string.Empty;
+        _saveMsg = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        _session = await SessionsService.GetByIdAsync(auth.User, SessionId);
+
+        _notesDraft = _session?.Notes ?? string.Empty;
+
+        _loading = false;
+    }
+
+    private async Task SaveNotesAsync()
+    {
+        if (_session is null) return;
+
+        _saving = true;
+        _error = string.Empty;
+        _saveMsg = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var ok = await SessionsService.UpdateNotesAsync(auth.User, SessionId, _notesDraft);
+
+            if (!ok)
+            {
+                _error = "Could not save notes—session not found or access denied.";
+                return;
+            }
+
+            _saveMsg = $"Saved at {DateTime.Now:t}";
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

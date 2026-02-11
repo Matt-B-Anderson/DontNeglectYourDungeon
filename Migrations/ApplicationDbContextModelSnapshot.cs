@@ -3,7 +3,6 @@ using System;
 using DontNeglectYourDungeon.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,11 +10,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DontNeglectYourDungeon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260211171315_AddCampaignsSessionsCharacters")]
-    partial class AddCampaignsSessionsCharacters
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
@@ -91,7 +88,7 @@ namespace DontNeglectYourDungeon.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -107,7 +104,7 @@ namespace DontNeglectYourDungeon.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("UpdatedAt")
+                    b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -126,7 +123,7 @@ namespace DontNeglectYourDungeon.Migrations
                     b.Property<int>("CampaignId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
@@ -155,7 +152,7 @@ namespace DontNeglectYourDungeon.Migrations
                     b.Property<int>("CampaignId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LocationOrLink")
@@ -166,7 +163,7 @@ namespace DontNeglectYourDungeon.Migrations
                         .HasMaxLength(8000)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("ScheduledAt")
+                    b.Property<DateTime>("ScheduledAtUtc")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
@@ -174,7 +171,7 @@ namespace DontNeglectYourDungeon.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("UpdatedAt")
+                    b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
