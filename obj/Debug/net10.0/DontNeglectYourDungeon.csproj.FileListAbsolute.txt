@@ -2,7 +2,6 @@ F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\appsettings.D
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\appsettings.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\DontNeglectYourDungeon.staticwebassets.runtime.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\DontNeglectYourDungeon.staticwebassets.endpoints.json
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\Data\app.db
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\DontNeglectYourDungeon.exe
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\DontNeglectYourDungeon.deps.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\DontNeglectYourDungeon.runtimeconfig.json
