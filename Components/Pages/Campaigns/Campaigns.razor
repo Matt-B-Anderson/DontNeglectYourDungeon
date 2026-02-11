@@ -1,0 +1,69 @@
+@page "/campaigns"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Services
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">⚔</div>
+        <div>
+            <h1 class="h1">Your Campaigns</h1>
+            <div class="muted">All your quests; in one ledger.</div>
+        </div>
+    </div>
+
+    <a class="btn" href="/campaigns/new">+ New Campaign</a>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading campaigns…</div>
+    }
+    else if (_campaigns.Count == 0)
+    {
+        <div class="muted">No campaigns yet.</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="/campaigns/new">Create your first campaign</a>
+        </div>
+    }
+    else
+    {
+        @foreach (var c in _campaigns)
+        {
+            <div class="tavern-card" style="background: var(--panel2);">
+                <div style="display:flex; justify-content:space-between; gap:1rem; align-items:flex-start;">
+                    <div>
+                        <div style="font-weight:800; font-size:1.05rem;">@c.Name</div>
+                        @if (!string.IsNullOrWhiteSpace(c.Description))
+                        {
+                            <div class="muted" style="margin-top:.25rem;">@c.Description</div>
+                        }
+                        <div class="muted" style="margin-top:.5rem; font-size:.9rem;">
+                            Updated @c.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")
+
+                        </div>
+                    </div>
+
+                    <a class="btn" href="@($"/campaigns/{c.Id}")">Open</a>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private List<Campaign> _campaigns = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        _campaigns = await CampaignsService.GetMineAsync(auth.User);
+        _loading = false;
+    }
+}

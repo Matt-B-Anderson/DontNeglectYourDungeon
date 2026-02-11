@@ -1,0 +1,78 @@
+@page "/campaigns/{Id:int}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Services
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">📜</div>
+        <div>
+            <h1 class="h1">@(_campaign?.Name ?? "Campaign")</h1>
+            <div class="muted">@(_campaign?.Description ?? "No description.")</div>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:.5rem;">
+        @if (_campaign is not null)
+        {
+            <a class="btn" href="@($"/campaigns/{Id}/edit")">Edit</a>
+            <a class="btn btn-danger" href="@($"/campaigns/{Id}/delete")">Delete</a>
+        }
+        <a class="btn" href="/campaigns">Back</a>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="tavern-card"><div class="muted">Loading…</div></div>
+}
+else if (_campaign is null)
+{
+    <div class="tavern-card">
+        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="/campaigns">Return to campaigns</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="grid-2">
+        <div class="tavern-card">
+            <div style="font-weight:800;">Sessions</div>
+            <div class="muted" style="margin-top:.25rem;">Coming next: schedule, view, and notes editor.</div>
+
+            <div style="margin-top:1rem;">
+                <div class="muted">Total sessions: @_campaign.Sessions.Count</div>
+            </div>
+        </div>
+
+        <div class="tavern-card">
+            <div style="font-weight:800;">Character Links</div>
+            <div class="muted" style="margin-top:.25rem;">Coming next: add/edit/remove external D&amp;D Beyond links.</div>
+
+            <div style="margin-top:1rem;">
+                <div class="muted">Total links: @_campaign.CharacterLinks.Count</div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private Campaign? _campaign;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        _campaign = await CampaignsService.GetMineByIdAsync(auth.User, Id);
+        _loading = false;
+    }
+}

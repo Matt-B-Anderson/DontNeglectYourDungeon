@@ -204,3 +204,4 @@ F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYo
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\ref\DontNeglectYourDungeon.dll
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.sourcelink.json
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\29u7ybtba9-{0}-0807azdk0h-0807azdk0h.gz
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\Data\app.db

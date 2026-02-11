@@ -15,7 +15,7 @@ public class CharacterLink
     [Required, Url, StringLength(500)]
     public string Url { get; set; } = string.Empty;
 
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Campaign? Campaign { get; set; }
 }

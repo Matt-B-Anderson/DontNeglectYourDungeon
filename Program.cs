@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using DontNeglectYourDungeon.Components;
 using DontNeglectYourDungeon.Components.Account;
 using DontNeglectYourDungeon.Data;
+using DontNeglectYourDungeon.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +39,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<ICampaignService, CampaignService>();
+
 
 var app = builder.Build();
 

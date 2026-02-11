@@ -1,0 +1,109 @@
+@page "/campaigns/{Id:int}/delete"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using DontNeglectYourDungeon.Services
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🔥</div>
+        <div>
+            <h1 class="h1">Delete Campaign</h1>
+            <div class="muted">This cannot be undone.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_notFound)
+    {
+        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="/campaigns">Return</a>
+        </div>
+    }
+    else
+    {
+        <div>
+            <div style="font-weight:800; font-size:1.05rem;">@_campaignName</div>
+            <div class="muted" style="margin-top:.35rem;">
+                Deleting will remove sessions and character links for this campaign.
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="validation-message" style="margin-top:.75rem;">@_error</div>
+            }
+
+            <div style="display:flex; gap:.75rem; margin-top:1rem;">
+                <button class="btn btn-danger" disabled="@_deleting" @onclick="DeleteAsync">Yes, delete</button>
+                <a class="btn" href="@($"/campaigns/{Id}")">Cancel</a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private bool _deleting;
+    private bool _notFound;
+    private string _campaignName = "Campaign";
+    private string _error = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+        _error = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, Id);
+
+        if (campaign is null)
+        {
+            _notFound = true;
+        }
+        else
+        {
+            _campaignName = campaign.Name;
+        }
+
+        _loading = false;
+    }
+
+    private async Task DeleteAsync()
+    {
+        _deleting = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var ok = await CampaignsService.DeleteAsync(auth.User, Id);
+
+            if (!ok)
+            {
+                _error = "Could not delete—campaign not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo("/campaigns");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _deleting = false;
+        }
+    }
+}

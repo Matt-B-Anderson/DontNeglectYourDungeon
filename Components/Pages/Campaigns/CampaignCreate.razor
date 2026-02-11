@@ -1,0 +1,86 @@
+@page "/campaigns/new"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Services
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">✍</div>
+        <div>
+            <h1 class="h1">New Campaign</h1>
+            <div class="muted">Name your tale; set the stage.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    <EditForm Model="_model" OnValidSubmit="CreateAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div style="display:grid; gap:.75rem;">
+            <div>
+                <label>Campaign Name</label>
+                <InputText @bind-Value="_model.Name" />
+                <ValidationMessage For="@(() => _model.Name)" />
+            </div>
+
+            <div>
+                <label>Description (optional)</label>
+                <InputTextArea @bind-Value="_model.Description" rows="4" />
+                <ValidationMessage For="@(() => _model.Description)" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="validation-message">@_error</div>
+            }
+
+            <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                <button class="btn" type="submit" disabled="@_saving">Create</button>
+                <a class="btn" href="/campaigns">Cancel</a>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private bool _saving;
+    private string _error = string.Empty;
+
+    private CampaignCreateModel _model = new();
+
+    public class CampaignCreateModel
+    {
+        [Required, StringLength(80, MinimumLength = 2)]
+        public string Name { get; set; } = string.Empty;
+
+        [StringLength(600)]
+        public string? Description { get; set; }
+    }
+
+    private async Task CreateAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var id = await CampaignsService.CreateAsync(auth.User, _model.Name, _model.Description);
+            Nav.NavigateTo($"/campaigns/{id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

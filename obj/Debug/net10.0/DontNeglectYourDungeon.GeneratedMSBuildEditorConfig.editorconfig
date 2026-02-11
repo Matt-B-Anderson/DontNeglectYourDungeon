@@ -198,6 +198,26 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBdXRoLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Campaigns/CampaignCreate.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDYW1wYWlnbnNcQ2FtcGFpZ25DcmVhdGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Campaigns/CampaignDelete.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDYW1wYWlnbnNcQ2FtcGFpZ25EZWxldGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Campaigns/CampaignDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDYW1wYWlnbnNcQ2FtcGFpZ25EZXRhaWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Campaigns/CampaignEdit.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDYW1wYWlnbnNcQ2FtcGFpZ25FZGl0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Campaigns/Campaigns.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDYW1wYWlnbnNcQ2FtcGFpZ25zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/code/BYUPathway/cse325/DontNeglectYourDungeon/Components/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3VudGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 

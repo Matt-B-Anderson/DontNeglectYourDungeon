@@ -13,7 +13,7 @@ public class Session
     public string Title { get; set; } = "Session";
 
     [Required]
-    public DateTimeOffset ScheduledAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime ScheduledAt { get; set; } = DateTime.UtcNow;
 
     [StringLength(200)]
     public string? LocationOrLink { get; set; }
@@ -21,8 +21,8 @@ public class Session
     [StringLength(8000)]
     public string? Notes { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 
     public Campaign? Campaign { get; set; }
 }

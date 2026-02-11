@@ -15,8 +15,8 @@ public class Campaign
     [Required]
     public string OwnerId { get; set; } = string.Empty;
 
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 
     public List<Session> Sessions { get; set; } = new();
     public List<CharacterLink> CharacterLinks { get; set; } = new();

@@ -36,6 +36,13 @@
             </NavLink>
         </div>
 
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/campaigns" Match="NavLinkMatch.Prefix">
+                <span aria-hidden="true">📚</span> Campaigns
+            </NavLink>
+        </div>
+
+
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item px-3">
@@ -89,4 +96,3 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-

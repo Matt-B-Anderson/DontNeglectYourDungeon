@@ -1,0 +1,133 @@
+@page "/campaigns/{Id:int}/edit"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Services
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🛠</div>
+        <div>
+            <h1 class="h1">Edit Campaign</h1>
+            <div class="muted">Keep the ledger tidy.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_notFound)
+    {
+        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="/campaigns">Return</a>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="_model" OnValidSubmit="SaveAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div style="display:grid; gap:.75rem;">
+                <div>
+                    <label>Campaign Name</label>
+                    <InputText @bind-Value="_model.Name" />
+                    <ValidationMessage For="@(() => _model.Name)" />
+                </div>
+
+                <div>
+                    <label>Description (optional)</label>
+                    <InputTextArea @bind-Value="_model.Description" rows="4" />
+                    <ValidationMessage For="@(() => _model.Description)" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <div class="validation-message">@_error</div>
+                }
+
+                <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <button class="btn" type="submit" disabled="@_saving">Save</button>
+                    <a class="btn" href="@($"/campaigns/{Id}")">Cancel</a>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private bool _saving;
+    private bool _notFound;
+    private string _error = string.Empty;
+
+    private CampaignEditModel _model = new();
+
+    public class CampaignEditModel
+    {
+        [Required, StringLength(80, MinimumLength = 2)]
+        public string Name { get; set; } = string.Empty;
+
+        [StringLength(600)]
+        public string? Description { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+        _error = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, Id);
+
+        if (campaign is null)
+        {
+            _notFound = true;
+        }
+        else
+        {
+            _model.Name = campaign.Name;
+            _model.Description = campaign.Description;
+        }
+
+        _loading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var ok = await CampaignsService.UpdateAsync(auth.User, Id, _model.Name, _model.Description);
+
+            if (!ok)
+            {
+                _error = "Could not save—campaign not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo($"/campaigns/{Id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}
