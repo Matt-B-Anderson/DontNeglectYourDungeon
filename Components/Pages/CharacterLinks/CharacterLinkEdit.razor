@@ -1,9 +1,9 @@
-@page "/campaigns/{Id:int}/edit"
+@page "/characters/{Id:int}/edit"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @using System.ComponentModel.DataAnnotations
 @using DontNeglectYourDungeon.Services
-@inject ICampaignService CampaignsService
+@inject ICharacterLinkService CharacterLinksService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
 
@@ -11,8 +11,8 @@
     <div class="brand">
         <div class="brand-badge">🛠</div>
         <div>
-            <h1 class="h1">Edit Campaign</h1>
-            <div class="muted">Keep the ledger tidy.</div>
+            <h1 class="h1">Edit Character Link</h1>
+            <div class="muted">Update name or URL.</div>
         </div>
     </div>
 </div>
@@ -24,28 +24,28 @@
     }
     else if (_notFound)
     {
-        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+        <div class="validation-message">Link not found (or you don’t have access).</div>
         <div style="margin-top:.75rem;">
             <a class="btn" href="/campaigns">Return</a>
         </div>
     }
     else
     {
-        <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="EditCampain">
+        <EditForm Model="_model" OnValidSubmit="@SaveAsync" FormName="EditCharacterLink">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div style="display:grid; gap:.75rem;">
                 <div>
-                    <label>Campaign Name</label>
+                    <label>Name</label>
                     <InputText @bind-Value="_model.Name" />
                     <ValidationMessage For="@(() => _model.Name)" />
                 </div>
 
                 <div>
-                    <label>Description (optional)</label>
-                    <InputTextArea @bind-Value="_model.Description" rows="4" />
-                    <ValidationMessage For="@(() => _model.Description)" />
+                    <label>URL</label>
+                    <InputText @bind-Value="_model.Url" />
+                    <ValidationMessage For="@(() => _model.Url)" />
                 </div>
 
                 @if (!string.IsNullOrWhiteSpace(_error))
@@ -55,7 +55,7 @@
 
                 <div style="display:flex; gap:.75rem; margin-top:.5rem;">
                     <button class="btn" type="submit" disabled="@_saving">Save</button>
-                    <a class="btn" href="@($"/campaigns/{Id}")">Cancel</a>
+                    <a class="btn" href="@_backHref">Cancel</a>
                 </div>
             </div>
         </EditForm>
@@ -70,15 +70,18 @@
     private bool _notFound;
     private string _error = string.Empty;
 
-    private CampaignEditModel _model = new();
+    private int _campaignId;
+    private string _backHref = "/campaigns";
 
-    public class CampaignEditModel
+    private Model _model = new();
+
+    public class Model
     {
         [Required, StringLength(80, MinimumLength = 2)]
         public string Name { get; set; } = string.Empty;
 
-        [StringLength(600)]
-        public string? Description { get; set; }
+        [Required, StringLength(500)]
+        public string Url { get; set; } = string.Empty;
     }
 
     protected override async Task OnParametersSetAsync()
@@ -88,17 +91,20 @@
         _error = string.Empty;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, Id);
+        var link = await CharacterLinksService.GetByIdAsync(auth.User, Id);
 
-        if (campaign is null)
+        if (link is null)
         {
             _notFound = true;
+            _loading = false;
+            return;
         }
-        else
-        {
-            _model.Name = campaign.Name;
-            _model.Description = campaign.Description;
-        }
+
+        _campaignId = link.CampaignId;
+        _backHref = $"/campaigns/{_campaignId}/characters";
+
+        _model.Name = link.Name;
+        _model.Url = link.Url;
 
         _loading = false;
     }
@@ -111,15 +117,15 @@
         try
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var ok = await CampaignsService.UpdateAsync(auth.User, Id, _model.Name, _model.Description);
+            var ok = await CharacterLinksService.UpdateAsync(auth.User, Id, _model.Name, _model.Url);
 
             if (!ok)
             {
-                _error = "Could not save—campaign not found or access denied.";
+                _error = "Could not save—link not found or access denied.";
                 return;
             }
 
-            Nav.NavigateTo($"/campaigns/{Id}");
+            Nav.NavigateTo($"/campaigns/{_campaignId}/characters");
         }
         catch (Exception ex)
         {

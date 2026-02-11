@@ -1,0 +1,111 @@
+@page "/characters/{Id:int}/delete"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using DontNeglectYourDungeon.Services
+@inject ICharacterLinkService CharacterLinksService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🔥</div>
+        <div>
+            <h1 class="h1">Delete Character Link</h1>
+            <div class="muted">This cannot be undone.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_notFound)
+    {
+        <div class="validation-message">Link not found (or you don’t have access).</div>
+    }
+    else
+    {
+        <div style="font-weight:800;">@_name</div>
+        <div class="muted" style="margin-top:.25rem;">@_url</div>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="validation-message" style="margin-top:.75rem;">@_error</div>
+        }
+
+        <div style="display:flex; gap:.75rem; margin-top:1rem;">
+            <button class="btn btn-danger" disabled="@_deleting" @onclick="DeleteAsync">Yes, delete</button>
+            <a class="btn" href="@_backHref">Cancel</a>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private bool _deleting;
+    private bool _notFound;
+    private string _error = string.Empty;
+
+    private int _campaignId;
+    private string _backHref = "/campaigns";
+
+    private string _name = "Character";
+    private string _url = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+        _error = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var link = await CharacterLinksService.GetByIdAsync(auth.User, Id);
+
+        if (link is null)
+        {
+            _notFound = true;
+            _loading = false;
+            return;
+        }
+
+        _campaignId = link.CampaignId;
+        _backHref = $"/campaigns/{_campaignId}/characters";
+
+        _name = link.Name;
+        _url = link.Url;
+
+        _loading = false;
+    }
+
+    private async Task DeleteAsync()
+    {
+        _deleting = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var ok = await CharacterLinksService.DeleteAsync(auth.User, Id);
+
+            if (!ok)
+            {
+                _error = "Could not delete—link not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo($"/campaigns/{_campaignId}/characters");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _deleting = false;
+        }
+    }
+}

@@ -41,6 +41,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<ICharacterLinkService, CharacterLinkService>();
 
 
 

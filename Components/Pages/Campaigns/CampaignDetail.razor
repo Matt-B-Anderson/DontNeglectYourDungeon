@@ -56,8 +56,10 @@ else
         </div>
 
         <div class="tavern-card">
-            <div style="font-weight:800;">Character Links</div>
-            <div class="muted" style="margin-top:.25rem;">Coming next: add/edit/remove external D&amp;D Beyond links.</div>
+            <div style="display:flex; gap:.75rem; margin-top:1rem;">
+                <a class="btn" href="@($"/campaigns/{Id}/characters")">View Links</a>
+                <a class="btn" href="@($"/campaigns/{Id}/characters/new")">+ Add Link</a>
+            </div>
 
             <div style="margin-top:1rem;">
                 <div class="muted">Total links: @_campaign.CharacterLinks.Count</div>
