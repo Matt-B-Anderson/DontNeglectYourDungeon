@@ -1,5 +1,6 @@
 @page "/campaigns/{CampaignId:int}/sessions/new"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using MudBlazor
 
 @using System.ComponentModel.DataAnnotations
 @using DontNeglectYourDungeon.Services
@@ -39,12 +40,15 @@
                 </div>
 
                 <div>
-                    <label>Date &amp; Time</label>
-                    <input type="datetime-local" @bind="_model.ScheduledLocal" />
-                    <ValidationMessage For="@(() => _model.ScheduledLocal)" />
-                    <div class="muted" style="margin-top:.25rem;">
-                        Stored in UTC; displayed in your local time.
-                    </div>
+                    <label>Date</label>
+                    <MudDatePicker @bind-Date="_model.ScheduledDate" PickerVariant="PickerVariant.Inline" DateFormat="MM/dd/yyyy" Required="true" />
+                    <ValidationMessage For="@(() => _model.ScheduledDate)" />
+                </div>
+
+                <div>
+                    <label>Time</label>
+                    <MudTimePicker @bind-Time="_model.ScheduledTime" AmPm="true" Required="true" />
+                    <ValidationMessage For="@(() => _model.ScheduledTime)" />
                 </div>
 
                 <div>
@@ -88,9 +92,11 @@
         [Required, StringLength(100, MinimumLength = 2)]
         public string Title { get; set; } = "Session";
 
-        // <input type="datetime-local"> uses: yyyy-MM-ddTHH:mm
         [Required]
-        public DateTime ScheduledLocal { get; set; } = DateTime.Now;
+        public DateTime? ScheduledDate { get; set; } = DateTime.Today;
+
+        [Required]
+        public TimeSpan? ScheduledTime { get; set; } = DateTime.Now.TimeOfDay;
 
         [StringLength(200)]
         public string? LocationOrLink { get; set; }
@@ -98,6 +104,7 @@
         [StringLength(8000)]
         public string? Notes { get; set; }
     }
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -117,11 +124,13 @@
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
 
+            var scheduledLocal = _model.ScheduledDate!.Value.Date + _model.ScheduledTime!.Value;
+
             var sessionId = await SessionsService.CreateAsync(
                 auth.User,
                 CampaignId,
                 _model.Title,
-                _model.ScheduledLocal,
+                scheduledLocal,
                 _model.LocationOrLink,
                 _model.Notes);
 

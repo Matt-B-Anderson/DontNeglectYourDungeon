@@ -142,7 +142,6 @@ F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\scopedcss\Com
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\scopedcss\Components\Layout\ReconnectModal.razor.rz.scp.css
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\scopedcss\bundle\DontNeglectYourDungeon.styles.css
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\scopedcss\projectbundle\DontNeglectYourDungeon.bundle.scp.css
-F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\29u7ybtba9-{0}-0807azdk0h-0807azdk0h.gz
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\2hekhvdbsy-{0}-bqjiyaj88i-bqjiyaj88i.gz
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\mfvcqug0dt-{0}-c2jlpeoesf-c2jlpeoesf.gz
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\ba179tj3g3-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -205,3 +204,7 @@ F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYo
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\DontNeglectYourDungeon.genruntimeconfig.cache
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\ref\DontNeglectYourDungeon.dll
 F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\Data\app.db
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\bin\Debug\net10.0\MudBlazor.dll
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\tzxjg6is5z-{0}-7c7lhmh1j6-7c7lhmh1j6.gz
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\0wz98yz2xy-{0}-f96y5mhlyw-f96y5mhlyw.gz
+F:\code\BYUPathway\cse325\DontNeglectYourDungeon\obj\Debug\net10.0\compressed\29u7ybtba9-{0}-yj94rxrrm5-yj94rxrrm5.gz

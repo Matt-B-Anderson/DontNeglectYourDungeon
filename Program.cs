@@ -5,6 +5,7 @@ using DontNeglectYourDungeon.Components;
 using DontNeglectYourDungeon.Components.Account;
 using DontNeglectYourDungeon.Data;
 using DontNeglectYourDungeon.Services;
+using MudBlazor.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +39,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.AddMudServices();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISessionService, SessionService>();

@@ -108,3 +108,8 @@ label {
 .validation-message {
     color: #ffb4a9;
 }
+
+.mud-typography,
+.mud-typography * {
+    font-family: inherit;
+}

@@ -1,5 +1,6 @@
 @page "/sessions/{SessionId:int}/edit"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using MudBlazor
 
 @using System.ComponentModel.DataAnnotations
 @using DontNeglectYourDungeon.Services
@@ -43,10 +44,17 @@
                 </div>
 
                 <div>
-                    <label>Date &amp; Time</label>
-                    <input type="datetime-local" @bind="_model.ScheduledLocal" />
-                    <ValidationMessage For="@(() => _model.ScheduledLocal)" />
+                    <label>Date</label>
+                    <MudDatePicker @bind-Date="_model.ScheduledDate" PickerVariant="PickerVariant.Inline"
+                                   DateFormat="MM/dd/yyyy" Required="true" />
+                    <ValidationMessage For="@(() => _model.ScheduledDate)" />
                 </div>
+
+                <div>
+                    <label>Time</label>
+                    <MudTimePicker @bind-Time="_model.ScheduledTime" AmPm="true" Required="true" />
+                    <ValidationMessage For="@(() => _model.ScheduledTime)" />
+                </div>X
 
                 <div>
                     <label>Location / Link (optional)</label>
@@ -85,13 +93,16 @@
         [Required, StringLength(100, MinimumLength = 2)]
         public string Title { get; set; } = string.Empty;
 
-        // <input type="datetime-local"> uses: yyyy-MM-ddTHH:mm
         [Required]
-       public DateTime ScheduledLocal { get; set; } = DateTime.Now;
+        public DateTime? ScheduledDate { get; set; } = DateTime.Today;
+
+        [Required]
+        public TimeSpan? ScheduledTime { get; set; } = TimeSpan.FromHours(19);
 
         [StringLength(200)]
         public string? LocationOrLink { get; set; }
     }
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -110,7 +121,10 @@
         }
 
         _model.Title = session.Title;
-        _model.ScheduledLocal = session.ScheduledAtUtc.ToLocalTime();
+        var local = session.ScheduledAtUtc.ToLocalTime();
+        _model.ScheduledDate = local.Date;
+        _model.ScheduledTime = local.TimeOfDay;
+
         _model.LocationOrLink = session.LocationOrLink;
 
         _cancelHref = $"/sessions/{SessionId}";
@@ -125,11 +139,12 @@
         try
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var scheduledLocal = _model.ScheduledDate!.Value.Date + _model.ScheduledTime!.Value;
             var ok = await SessionsService.UpdateAsync(
                 auth.User,
                 SessionId,
                 _model.Title,
-                _model.ScheduledLocal,
+                scheduledLocal,
                 _model.LocationOrLink);
 
             if (!ok)
