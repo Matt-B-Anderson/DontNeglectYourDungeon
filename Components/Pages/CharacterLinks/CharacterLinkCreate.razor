@@ -2,8 +2,9 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @using System.ComponentModel.DataAnnotations
-@using DontNeglectYourDungeon.Services
-@inject ICharacterLinkService CharacterLinksService
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ILinkedCharacterService LinkedCharacterService
 @inject ICampaignService CampaignsService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
@@ -27,21 +28,22 @@
     }
     else
     {
-        <EditForm Model="_model" OnValidSubmit="@CreateAsync" FormName="CreateCharacterLink">
+        <EditForm Model="_model" OnValidSubmit="@CreateAsync" FormName="CreateLinkedCharacter">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div style="display:grid; gap:.75rem;">
                 <div>
                     <label>Name</label>
-                    <InputText @bind-Value="_model.Name" />
-                    <ValidationMessage For="@(() => _model.Name)" />
+                    <InputText @bind-Value="_model.DisplayName" />
+                    <ValidationMessage For="@(() => _model.DisplayName)" />
                 </div>
 
                 <div>
-                    <label>URL (D&amp;D Beyond, etc.)</label>
+                    <label>URL (D&amp;D Beyond)</label>
                     <InputText @bind-Value="_model.Url" />
                     <ValidationMessage For="@(() => _model.Url)" />
+                    <div class="muted" style="margin-top:.25rem;">Must start with https://www.dndbeyond.com/</div>
                 </div>
 
                 @if (!string.IsNullOrWhiteSpace(_error))
@@ -66,21 +68,21 @@
     private bool _saving;
     private string _error = string.Empty;
 
-    private Model _model = new();
+    private CreateModel _model = new();
 
-    public class Model
+    public class CreateModel
     {
         [Required, StringLength(80, MinimumLength = 2)]
-        public string Name { get; set; } = "Character";
+        public string DisplayName { get; set; } = "Character";
 
         [Required, StringLength(500)]
-        public string Url { get; set; } = string.Empty;
+        public string Url { get; set; } = "";
     }
 
     protected override async Task OnParametersSetAsync()
     {
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, CampaignId);
+        var campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
         _noAccess = campaign is null;
         _campaignName = campaign?.Name;
     }
@@ -93,13 +95,14 @@
         try
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var id = await CharacterLinksService.CreateAsync(auth.User, CampaignId, _model.Name, _model.Url);
 
-            if (id is null)
+            var link = new LinkedCharacter
             {
-                _error = "Could not create link—campaign not found or access denied.";
-                return;
-            }
+                DisplayName = _model.DisplayName.Trim(),
+                Url = _model.Url.Trim()
+            };
+
+            await LinkedCharacterService.CreateAsync(link, auth.User);
 
             Nav.NavigateTo($"/campaigns/{CampaignId}/characters");
         }

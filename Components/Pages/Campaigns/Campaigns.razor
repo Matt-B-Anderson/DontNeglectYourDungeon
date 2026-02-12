@@ -2,17 +2,16 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @using DontNeglectYourDungeon.Data.Models
-@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ICampaignService CampaignsService
 @inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Nav
 
 <div class="tavern-header">
     <div class="brand">
-        <div class="brand-badge">⚔</div>
+        <div class="brand-badge">🏰</div>
         <div>
-            <h1 class="h1">Your Campaigns</h1>
-            <div class="muted">All your quests; in one ledger.</div>
+            <h1 class="h1">Campaigns</h1>
+            <div class="muted">Your active adventures; all in one ledger.</div>
         </div>
     </div>
 
@@ -22,7 +21,7 @@
 <div class="tavern-card">
     @if (_loading)
     {
-        <div class="muted">Loading campaigns…</div>
+        <div class="muted">Loading…</div>
     }
     else if (_campaigns.Count == 0)
     {
@@ -33,23 +32,26 @@
     }
     else
     {
-        @foreach (var c in _campaigns)
+        @foreach (var c in _campaigns.OrderByDescending(x => x.CreatedUtc))
         {
             <div class="tavern-card" style="background: var(--panel2);">
-                <div style="display:flex; justify-content:space-between; gap:1rem; align-items:flex-start;">
+                <div style="display:flex; justify-content:space-between; gap:1rem;">
                     <div>
-                        <div style="font-weight:800; font-size:1.05rem;">@c.Name</div>
+                        <div style="font-weight:800;">@c.Name</div>
                         @if (!string.IsNullOrWhiteSpace(c.Description))
                         {
-                            <div class="muted" style="margin-top:.25rem;">@c.Description</div>
+                            <div class="muted" style="margin-top:.25rem; white-space:pre-wrap;">@c.Description</div>
                         }
-                        <div class="muted" style="margin-top:.5rem; font-size:.9rem;">
-                            Updated @c.UpdatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")
+                        <div class="muted" style="margin-top:.5rem;">
+                            Created: @c.CreatedUtc.ToLocalTime().ToString("MMM d, yyyy")
+                        </div>
 
+                        <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                            <a class="btn" href="@($"/campaigns/{c.Id}")">Open</a>
+                            <a class="btn" href="@($"/campaigns/{c.Id}/edit")">Edit</a>
+                            <a class="btn btn-danger" href="@($"/campaigns/{c.Id}/delete")">Delete</a>
                         </div>
                     </div>
-
-                    <a class="btn" href="@($"/campaigns/{c.Id}")">Open</a>
                 </div>
             </div>
         }
@@ -62,8 +64,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _loading = true;
+
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        _campaigns = await CampaignsService.GetMineAsync(auth.User);
+
+        _campaigns = await CampaignsService.GetForUserAsync(auth.User);
+
         _loading = false;
     }
 }

@@ -1,7 +1,7 @@
 @page "/sessions/{SessionId:int}/delete"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
-@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ISessionService SessionsService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
@@ -61,7 +61,7 @@
         _error = string.Empty;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var session = await SessionsService.GetByIdAsync(auth.User, SessionId);
+        var session = await SessionsService.GetByIdAsync(SessionId, auth.User);
 
         if (session is null)
         {
@@ -71,7 +71,7 @@
         }
 
         _title = session.Title;
-        _when = session.ScheduledAtUtc.ToLocalTime().ToString("ddd, MMM d · h:mm tt");
+        _when = session.SessionDate.ToLocalTime().ToString("ddd, MMM d · h:mm tt");
         _cancelHref = $"/sessions/{SessionId}";
 
         _loading = false;
@@ -85,7 +85,7 @@
         try
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var ok = await SessionsService.DeleteAsync(auth.User, SessionId);
+            var ok = await SessionsService.DeleteAsync(SessionId, auth.User);
 
             if (!ok)
             {

@@ -2,8 +2,8 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @using DontNeglectYourDungeon.Data.Models
-@using DontNeglectYourDungeon.Services
-@inject ICharacterLinkService CharacterLinksService
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ILinkedCharacterService LinkedCharacterService
 @inject ICampaignService CampaignsService
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -44,14 +44,14 @@
         {
             <div class="tavern-card" style="background: var(--panel2);">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
-                    <div>
-                        <div style="font-weight:800;">@cl.Name</div>
-                        <div class="muted" style="margin-top:.25rem;">@cl.Url</div>
+                    <div style="min-width:0;">
+                        <div style="font-weight:800;">@cl.DisplayName</div>
+                        <div class="muted" style="margin-top:.25rem; overflow-wrap:anywhere;">@cl.Url</div>
 
                         <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
                             <a class="btn" href="@cl.Url" target="_blank" rel="noopener noreferrer">Open</a>
-                            <a class="btn" href="@($"/characters/{cl.Id}/edit")">Edit</a>
-                            <a class="btn btn-danger" href="@($"/characters/{cl.Id}/delete")">Delete</a>
+                            <a class="btn" href="@($"/characters/{cl.Id}/edit?campaignId={CampaignId}")">Edit</a>
+                            <a class="btn btn-danger" href="@($"/characters/{cl.Id}/delete?campaignId={CampaignId}")">Delete</a>
                         </div>
                     </div>
                 </div>
@@ -66,7 +66,7 @@
     private bool _loading = true;
     private bool _noAccess;
     private string? _campaignName;
-    private List<CharacterLink> _links = new();
+    private List<LinkedCharacter> _links = new();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -74,7 +74,7 @@
         _noAccess = false;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, CampaignId);
+        var campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
 
         if (campaign is null)
         {
@@ -85,7 +85,7 @@
         }
 
         _campaignName = campaign.Name;
-        _links = await CharacterLinksService.GetForCampaignAsync(auth.User, CampaignId);
+        _links = await LinkedCharacterService.GetForUserAsync(auth.User);
 
         _loading = false;
     }

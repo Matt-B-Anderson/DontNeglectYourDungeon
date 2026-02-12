@@ -1,8 +1,9 @@
 @page "/characters/{Id:int}/delete"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
-@using DontNeglectYourDungeon.Services
-@inject ICharacterLinkService CharacterLinksService
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ILinkedCharacterService LinkedCharacterService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
 
@@ -28,7 +29,7 @@
     else
     {
         <div style="font-weight:800;">@_name</div>
-        <div class="muted" style="margin-top:.25rem;">@_url</div>
+        <div class="muted" style="margin-top:.25rem; overflow-wrap:anywhere;">@_url</div>
 
         @if (!string.IsNullOrWhiteSpace(_error))
         {
@@ -45,16 +46,17 @@
 @code {
     [Parameter] public int Id { get; set; }
 
+    [SupplyParameterFromQuery] public int? CampaignId { get; set; }
+
     private bool _loading = true;
     private bool _deleting;
     private bool _notFound;
     private string _error = string.Empty;
 
-    private int _campaignId;
-    private string _backHref = "/campaigns";
-
     private string _name = "Character";
     private string _url = "";
+
+    private string _backHref => CampaignId is int cId ? $"/campaigns/{cId}/characters" : "/campaigns";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -63,8 +65,9 @@
         _error = string.Empty;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var link = await CharacterLinksService.GetByIdAsync(auth.User, Id);
+        var links = await LinkedCharacterService.GetForUserAsync(auth.User);
 
+        var link = links.FirstOrDefault(l => l.Id == Id);
         if (link is null)
         {
             _notFound = true;
@@ -72,10 +75,7 @@
             return;
         }
 
-        _campaignId = link.CampaignId;
-        _backHref = $"/campaigns/{_campaignId}/characters";
-
-        _name = link.Name;
+        _name = link.DisplayName;
         _url = link.Url;
 
         _loading = false;
@@ -89,7 +89,7 @@
         try
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var ok = await CharacterLinksService.DeleteAsync(auth.User, Id);
+            var ok = await LinkedCharacterService.DeleteAsync(Id, auth.User);
 
             if (!ok)
             {
@@ -97,7 +97,7 @@
                 return;
             }
 
-            Nav.NavigateTo($"/campaigns/{_campaignId}/characters");
+            Nav.NavigateTo(_backHref);
         }
         catch (Exception ex)
         {

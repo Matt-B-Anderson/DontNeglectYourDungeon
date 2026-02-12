@@ -1,75 +1,75 @@
-@page "/campaigns/{Id:int}"
+@page "/campaigns/{CampaignId:int}"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @using DontNeglectYourDungeon.Data.Models
-@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ICampaignService CampaignsService
 @inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager Nav
 
 <div class="tavern-header">
     <div class="brand">
-        <div class="brand-badge">📜</div>
+        <div class="brand-badge">🧾</div>
         <div>
             <h1 class="h1">@(_campaign?.Name ?? "Campaign")</h1>
-            <div class="muted">@(_campaign?.Description ?? "No description.")</div>
+            <div class="muted">A single scroll for your party’s legend.</div>
         </div>
     </div>
 
     <div style="display:flex; gap:.5rem;">
         @if (_campaign is not null)
         {
-            <a class="btn" href="@($"/campaigns/{Id}/edit")">Edit</a>
-            <a class="btn btn-danger" href="@($"/campaigns/{Id}/delete")">Delete</a>
+            <a class="btn" href="@($"/campaigns/{CampaignId}/edit")">Edit</a>
+            <a class="btn btn-danger" href="@($"/campaigns/{CampaignId}/delete")">Delete</a>
         }
         <a class="btn" href="/campaigns">Back</a>
     </div>
 </div>
 
-@if (_loading)
-{
-    <div class="tavern-card">
+<div class="tavern-card">
+    @if (_loading)
+    {
         <div class="muted">Loading…</div>
-    </div>
-}
-else if (_campaign is null)
-{
-    <div class="tavern-card">
+    }
+    else if (_campaign is null)
+    {
         <div class="validation-message">Campaign not found (or you don’t have access).</div>
-        <div style="margin-top:.75rem;">
-            <a class="btn" href="/campaigns">Return to campaigns</a>
-        </div>
-    </div>
-}
-else
-{
-    <div class="grid-2">
-        <div class="tavern-card">
-            <div style="display:flex; gap:.75rem; margin-top:1rem;">
-                <a class="btn" href="@($"/campaigns/{Id}/sessions")">View Sessions</a>
-                <a class="btn" href="@($"/campaigns/{Id}/sessions/new")">+ Schedule</a>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_campaign.Description))
+        {
+            <div class="muted" style="white-space:pre-wrap;">@_campaign.Description</div>
+            <div style="margin-top:1rem;"></div>
+        }
+
+        <div style="display:grid; gap:1rem;">
+            <div class="tavern-card" style="background: var(--panel2);">
+                <div style="font-weight:800;">Sessions</div>
+                <div class="muted" style="margin-top:.25rem;">Schedule and review your adventure log.</div>
+                <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                    <a class="btn" href="@($"/campaigns/{CampaignId}/sessions")">View Sessions</a>
+                    <a class="btn" href="@($"/campaigns/{CampaignId}/sessions/new")">+ Schedule</a>
+                </div>
             </div>
 
-            <div style="margin-top:1rem;">
-                <div class="muted">Total sessions: @_campaign.Sessions.Count</div>
+            <div class="tavern-card" style="background: var(--panel2);">
+                <div style="font-weight:800;">Character Links</div>
+                <div class="muted" style="margin-top:.25rem;">External character sheets (D&amp;D Beyond, etc.).</div>
+                <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                    <a class="btn" href="@($"/campaigns/{CampaignId}/characters")">View Links</a>
+                    <a class="btn" href="@($"/campaigns/{CampaignId}/characters/new")">+ Add Link</a>
+                </div>
             </div>
         </div>
 
-        <div class="tavern-card">
-            <div style="display:flex; gap:.75rem; margin-top:1rem;">
-                <a class="btn" href="@($"/campaigns/{Id}/characters")">View Links</a>
-                <a class="btn" href="@($"/campaigns/{Id}/characters/new")">+ Add Link</a>
-            </div>
-
-            <div style="margin-top:1rem;">
-                <div class="muted">Total links: @_campaign.CharacterLinks.Count</div>
-            </div>
+        <div class="muted" style="margin-top:1rem;">
+            Last updated: @_campaign.CreatedUtc.ToLocalTime().ToString("MMM d, yyyy h:mm tt")
         </div>
-    </div>
-}
+    }
+</div>
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public int CampaignId { get; set; }
 
     private bool _loading = true;
     private Campaign? _campaign;
@@ -77,8 +77,12 @@ else
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
+
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        _campaign = await CampaignsService.GetMineByIdAsync(auth.User, Id);
+
+        // ✅ Adjust only this call if your teammate used a different name
+        _campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
+
         _loading = false;
     }
 }

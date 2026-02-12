@@ -1,7 +1,8 @@
-@page "/campaigns/{Id:int}/delete"
+@page "/campaigns/{CampaignId:int}/delete"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
-@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ICampaignService CampaignsService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
@@ -11,7 +12,7 @@
         <div class="brand-badge">🔥</div>
         <div>
             <h1 class="h1">Delete Campaign</h1>
-            <div class="muted">This cannot be undone.</div>
+            <div class="muted">This will remove the campaign and all its sessions/links.</div>
         </div>
     </div>
 </div>
@@ -24,57 +25,60 @@
     else if (_notFound)
     {
         <div class="validation-message">Campaign not found (or you don’t have access).</div>
-        <div style="margin-top:.75rem;">
-            <a class="btn" href="/campaigns">Return</a>
-        </div>
     }
     else
     {
-        <div>
-            <div style="font-weight:800; font-size:1.05rem;">@_campaignName</div>
-            <div class="muted" style="margin-top:.35rem;">
-                Deleting will remove sessions and character links for this campaign.
-            </div>
+        <div style="font-weight:800;">@_name</div>
 
-            @if (!string.IsNullOrWhiteSpace(_error))
-            {
-                <div class="validation-message" style="margin-top:.75rem;">@_error</div>
-            }
+        @if (!string.IsNullOrWhiteSpace(_description))
+        {
+            <div class="muted" style="margin-top:.25rem; white-space:pre-wrap;">@_description</div>
+        }
 
-            <div style="display:flex; gap:.75rem; margin-top:1rem;">
-                <button class="btn btn-danger" disabled="@_deleting" @onclick="DeleteAsync">Yes, delete</button>
-                <a class="btn" href="@($"/campaigns/{Id}")">Cancel</a>
-            </div>
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="validation-message" style="margin-top:.75rem;">@_error</div>
+        }
+
+        <div style="display:flex; gap:.75rem; margin-top:1rem;">
+            <button class="btn btn-danger" disabled="@_deleting" @onclick="DeleteAsync">Yes, delete</button>
+            <a class="btn" href="@_cancelHref">Cancel</a>
         </div>
     }
 </div>
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public int CampaignId { get; set; }
 
     private bool _loading = true;
     private bool _deleting;
     private bool _notFound;
-    private string _campaignName = "Campaign";
     private string _error = string.Empty;
+
+    private string _name = "Campaign";
+    private string? _description;
+    private string _cancelHref = "/campaigns";
 
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
         _notFound = false;
-        _error = string.Empty;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, Id);
+
+        // ✅ Adjust name/signature if needed
+        var campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
 
         if (campaign is null)
         {
             _notFound = true;
+            _loading = false;
+            return;
         }
-        else
-        {
-            _campaignName = campaign.Name;
-        }
+
+        _name = campaign.Name;
+        _description = campaign.Description;
+        _cancelHref = $"/campaigns/{CampaignId}";
 
         _loading = false;
     }
@@ -87,7 +91,9 @@
         try
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var ok = await CampaignsService.DeleteAsync(auth.User, Id);
+
+            // ✅ If DeleteAsync expects (id, user) and returns bool:
+            var ok = await CampaignsService.DeleteAsync(CampaignId, auth.User);
 
             if (!ok)
             {
@@ -95,7 +101,7 @@
                 return;
             }
 
-            Nav.NavigateTo("/campaigns");
+            Nav.NavigateTo("/campaigns", replace: true);
         }
         catch (Exception ex)
         {

@@ -3,7 +3,8 @@
 @using MudBlazor
 
 @using System.ComponentModel.DataAnnotations
-@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ISessionService SessionsService
 @inject ICampaignService CampaignsService
 @inject AuthenticationStateProvider AuthStateProvider
@@ -41,13 +42,18 @@
 
                 <div>
                     <label>Date</label>
-                    <MudDatePicker @bind-Date="_model.ScheduledDate" PickerVariant="PickerVariant.Inline" DateFormat="MM/dd/yyyy" Required="true" />
+                    <MudDatePicker @bind-Date="_model.ScheduledDate"
+                                   PickerVariant="PickerVariant.Inline"
+                                   DateFormat="MM/dd/yyyy"
+                                   Required="true" />
                     <ValidationMessage For="@(() => _model.ScheduledDate)" />
                 </div>
 
                 <div>
                     <label>Time</label>
-                    <MudTimePicker @bind-Time="_model.ScheduledTime" AmPm="true" Required="true" />
+                    <MudTimePicker @bind-Time="_model.ScheduledTime"
+                                   AmPm="true"
+                                   Required="true" />
                     <ValidationMessage For="@(() => _model.ScheduledTime)" />
                 </div>
 
@@ -58,9 +64,15 @@
                 </div>
 
                 <div>
-                    <label>Notes (optional)</label>
-                    <InputTextArea @bind-Value="_model.Notes" rows="6" />
-                    <ValidationMessage For="@(() => _model.Notes)" />
+                    <label>Summary (optional)</label>
+                    <InputTextArea @bind-Value="_model.Summary" rows="4" />
+                    <ValidationMessage For="@(() => _model.Summary)" />
+                </div>
+
+                <div>
+                    <label>Next Steps (optional)</label>
+                    <InputTextArea @bind-Value="_model.NextSteps" rows="4" />
+                    <ValidationMessage For="@(() => _model.NextSteps)" />
                 </div>
 
                 @if (!string.IsNullOrWhiteSpace(_error))
@@ -101,15 +113,17 @@
         [StringLength(200)]
         public string? LocationOrLink { get; set; }
 
-        [StringLength(8000)]
-        public string? Notes { get; set; }
-    }
+        [StringLength(2000)]
+        public string? Summary { get; set; }
 
+        [StringLength(2000)]
+        public string? NextSteps { get; set; }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, CampaignId);
+        var campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
 
         _noAccess = campaign is null;
         _campaignName = campaign?.Name;
@@ -122,29 +136,32 @@
 
         try
         {
-            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-
-            var scheduledLocal = _model.ScheduledDate!.Value.Date + _model.ScheduledTime!.Value;
-
-            var sessionId = await SessionsService.CreateAsync(
-                auth.User,
-                CampaignId,
-                _model.Title,
-                scheduledLocal,
-                _model.LocationOrLink,
-                _model.Notes);
-
-            if (sessionId is null)
+            if (_model.ScheduledDate is null || _model.ScheduledTime is null)
             {
-                _error = "Could not create session—campaign not found or access denied.";
+                _error = "Please select a valid date and time.";
                 return;
             }
 
-            Nav.NavigateTo($"/sessions/{sessionId.Value}");
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            var scheduledLocal = _model.ScheduledDate.Value.Date + _model.ScheduledTime.Value;
+
+            var session = new Session
+            {
+                CampaignId = CampaignId,
+                Title = _model.Title.Trim(),
+                SessionDate = scheduledLocal, // service persists as-is
+                LocationOrLink = string.IsNullOrWhiteSpace(_model.LocationOrLink) ? null : _model.LocationOrLink.Trim(),
+                Summary = string.IsNullOrWhiteSpace(_model.Summary) ? null : _model.Summary.Trim(),
+                NextSteps = string.IsNullOrWhiteSpace(_model.NextSteps) ? null : _model.NextSteps.Trim()
+            };
+
+            var created = await SessionsService.CreateAsync(session, auth.User);
+
+            Nav.NavigateTo($"/sessions/{created.Id}");
         }
         catch (Exception ex)
         {
-            // This will catch ValidationException from the service if datetime format is invalid
             _error = ex.Message;
         }
         finally

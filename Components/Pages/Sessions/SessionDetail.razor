@@ -1,8 +1,8 @@
 @page "/sessions/{SessionId:int}"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
-@using DontNeglectYourDungeon.Services
 @using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ISessionService SessionsService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
@@ -12,7 +12,9 @@
         <div class="brand-badge">📖</div>
         <div>
             <h1 class="h1">@(_session?.Title ?? "Session")</h1>
-            <div class="muted">@(_session is null ? "" : _session.ScheduledAtUtc.ToLocalTime().ToString("ddd, MMM d · h:mm tt"))</div>
+            <div class="muted">
+                @(_session is null ? "" : _session.SessionDate.ToLocalTime().ToString("ddd, MMM d · h:mm tt"))
+            </div>
         </div>
     </div>
 
@@ -43,29 +45,45 @@
     {
         @if (!string.IsNullOrWhiteSpace(_session.LocationOrLink))
         {
-            <div class="muted"><strong>Location/Link:</strong> @_session.LocationOrLink</div>
-            <div style="margin-top:.75rem;"></div>
+            <div class="muted">
+                <strong>Location/Link:</strong> @_session.LocationOrLink
+            </div>
+            <div style="margin-top:.5rem;">
+                <a class="btn" href="@_session.LocationOrLink" target="_blank" rel="noopener noreferrer">Open</a>
+            </div>
+            <div style="margin-top:1rem;"></div>
         }
 
-        <div style="font-weight:800;">Notes</div>
-        <div class="muted" style="margin-top:.25rem;">Write what happened; track loot, NPCs, and cliffhangers.</div>
+        <div style="display:grid; gap:1rem;">
+            <div>
+                <div style="font-weight:800;">Summary</div>
+                @if (string.IsNullOrWhiteSpace(_session.Summary))
+                {
+                    <div class="muted" style="margin-top:.25rem;">No summary yet.</div>
+                }
+                else
+                {
+                    <div class="muted" style="margin-top:.25rem; white-space:pre-wrap;">@_session.Summary</div>
+                }
+            </div>
 
-        <div style="margin-top:.75rem;">
-            <textarea rows="10" @bind="_notesDraft"></textarea>
+            <div>
+                <div style="font-weight:800;">Next Steps</div>
+                @if (string.IsNullOrWhiteSpace(_session.NextSteps))
+                {
+                    <div class="muted" style="margin-top:.25rem;">No next steps yet.</div>
+                }
+                else
+                {
+                    <div class="muted" style="margin-top:.25rem; white-space:pre-wrap;">@_session.NextSteps</div>
+                }
+            </div>
         </div>
 
-        @if (!string.IsNullOrWhiteSpace(_saveMsg))
-        {
-            <div class="muted" style="margin-top:.5rem;">@_saveMsg</div>
-        }
         @if (!string.IsNullOrWhiteSpace(_error))
         {
-            <div class="validation-message" style="margin-top:.5rem;">@_error</div>
+            <div class="validation-message" style="margin-top:1rem;">@_error</div>
         }
-
-        <div style="display:flex; gap:.75rem; margin-top:1rem;">
-            <button class="btn" disabled="@_saving" @onclick="SaveNotesAsync">Save Notes</button>
-        </div>
     }
 </div>
 
@@ -73,55 +91,18 @@
     [Parameter] public int SessionId { get; set; }
 
     private bool _loading = true;
-    private bool _saving;
     private string _error = string.Empty;
-    private string _saveMsg = string.Empty;
 
     private Session? _session;
-    private string _notesDraft = string.Empty;
 
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
         _error = string.Empty;
-        _saveMsg = string.Empty;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        _session = await SessionsService.GetByIdAsync(auth.User, SessionId);
-
-        _notesDraft = _session?.Notes ?? string.Empty;
+        _session = await SessionsService.GetByIdAsync(SessionId, auth.User);
 
         _loading = false;
-    }
-
-    private async Task SaveNotesAsync()
-    {
-        if (_session is null) return;
-
-        _saving = true;
-        _error = string.Empty;
-        _saveMsg = string.Empty;
-
-        try
-        {
-            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var ok = await SessionsService.UpdateNotesAsync(auth.User, SessionId, _notesDraft);
-
-            if (!ok)
-            {
-                _error = "Could not save notes—session not found or access denied.";
-                return;
-            }
-
-            _saveMsg = $"Saved at {DateTime.Now:t}";
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
-        finally
-        {
-            _saving = false;
-        }
     }
 }

@@ -2,36 +2,39 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @using System.ComponentModel.DataAnnotations
-@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ICampaignService CampaignsService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
 
 <div class="tavern-header">
     <div class="brand">
-        <div class="brand-badge">✍</div>
+        <div class="brand-badge">🪶</div>
         <div>
-            <h1 class="h1">New Campaign</h1>
+            <h1 class="h1">Create Campaign</h1>
             <div class="muted">Name your tale; set the stage.</div>
         </div>
     </div>
+
+    <a class="btn" href="/campaigns">Back</a>
 </div>
 
 <div class="tavern-card">
-    <EditForm Model="_model" OnValidSubmit="CreateAsync" FormName="CreateCampain">
+    <EditForm Model="_model" OnValidSubmit="@CreateAsync" FormName="CreateCampaign">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <div style="display:grid; gap:.75rem;">
             <div>
-                <label>Campaign Name</label>
+                <label>Name</label>
                 <InputText @bind-Value="_model.Name" />
                 <ValidationMessage For="@(() => _model.Name)" />
             </div>
 
             <div>
                 <label>Description (optional)</label>
-                <InputTextArea @bind-Value="_model.Description" rows="4" />
+                <InputTextArea @bind-Value="_model.Description" rows="6" />
                 <ValidationMessage For="@(() => _model.Description)" />
             </div>
 
@@ -56,10 +59,10 @@
 
     public class CampaignCreateModel
     {
-        [Required, StringLength(80, MinimumLength = 2)]
-        public string Name { get; set; } = string.Empty;
+        [Required, StringLength(100, MinimumLength = 2)]
+        public string Name { get; set; } = "";
 
-        [StringLength(600)]
+        [StringLength(2000)]
         public string? Description { get; set; }
     }
 
@@ -71,8 +74,22 @@
         try
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var id = await CampaignsService.CreateAsync(auth.User, _model.Name, _model.Description);
-            Nav.NavigateTo($"/campaigns/{id}");
+
+            var campaign = new Campaign
+            {
+                Name = _model.Name.Trim(),
+                Description = string.IsNullOrWhiteSpace(_model.Description) ? null : _model.Description.Trim()
+            };
+
+            // ✅ If your teammate service returns Campaign, use it.
+            // ✅ If it returns int campaignId, adjust just this line.
+            var created = await CampaignsService.CreateAsync(campaign, auth.User);
+
+            // If CreateAsync returns Campaign:
+            Nav.NavigateTo($"/campaigns/{created.Id}");
+
+            // If CreateAsync returns int:
+            // Nav.NavigateTo($"/campaigns/{created}");
         }
         catch (Exception ex)
         {

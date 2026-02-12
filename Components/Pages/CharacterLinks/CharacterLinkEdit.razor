@@ -2,8 +2,9 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @using System.ComponentModel.DataAnnotations
-@using DontNeglectYourDungeon.Services
-@inject ICharacterLinkService CharacterLinksService
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ILinkedCharacterService LinkedCharacterService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
 
@@ -26,26 +27,27 @@
     {
         <div class="validation-message">Link not found (or you don’t have access).</div>
         <div style="margin-top:.75rem;">
-            <a class="btn" href="/campaigns">Return</a>
+            <a class="btn" href="@_backHref">Return</a>
         </div>
     }
     else
     {
-        <EditForm Model="_model" OnValidSubmit="@SaveAsync" FormName="EditCharacterLink">
+        <EditForm Model="_model" OnValidSubmit="@SaveAsync" FormName="EditLinkedCharacter">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div style="display:grid; gap:.75rem;">
                 <div>
                     <label>Name</label>
-                    <InputText @bind-Value="_model.Name" />
-                    <ValidationMessage For="@(() => _model.Name)" />
+                    <InputText @bind-Value="_model.DisplayName" />
+                    <ValidationMessage For="@(() => _model.DisplayName)" />
                 </div>
 
                 <div>
-                    <label>URL</label>
+                    <label>URL (D&amp;D Beyond)</label>
                     <InputText @bind-Value="_model.Url" />
                     <ValidationMessage For="@(() => _model.Url)" />
+                    <div class="muted" style="margin-top:.25rem;">Must start with https://www.dndbeyond.com/</div>
                 </div>
 
                 @if (!string.IsNullOrWhiteSpace(_error))
@@ -65,23 +67,25 @@
 @code {
     [Parameter] public int Id { get; set; }
 
+    [SupplyParameterFromQuery] public int? CampaignId { get; set; }
+
     private bool _loading = true;
     private bool _saving;
     private bool _notFound;
     private string _error = string.Empty;
 
-    private int _campaignId;
-    private string _backHref = "/campaigns";
+    private string _backHref => CampaignId is int cId ? $"/campaigns/{cId}/characters" : "/campaigns";
 
-    private Model _model = new();
+    private LinkedCharacter? _link;
+    private EditModel _model = new();
 
-    public class Model
+    public class EditModel
     {
         [Required, StringLength(80, MinimumLength = 2)]
-        public string Name { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = "";
 
         [Required, StringLength(500)]
-        public string Url { get; set; } = string.Empty;
+        public string Url { get; set; } = "";
     }
 
     protected override async Task OnParametersSetAsync()
@@ -91,20 +95,18 @@
         _error = string.Empty;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var link = await CharacterLinksService.GetByIdAsync(auth.User, Id);
+        var links = await LinkedCharacterService.GetForUserAsync(auth.User);
 
-        if (link is null)
+        _link = links.FirstOrDefault(l => l.Id == Id);
+        if (_link is null)
         {
             _notFound = true;
             _loading = false;
             return;
         }
 
-        _campaignId = link.CampaignId;
-        _backHref = $"/campaigns/{_campaignId}/characters";
-
-        _model.Name = link.Name;
-        _model.Url = link.Url;
+        _model.DisplayName = _link.DisplayName;
+        _model.Url = _link.Url;
 
         _loading = false;
     }
@@ -116,8 +118,17 @@
 
         try
         {
+            if (_link is null)
+            {
+                _error = "Link not loaded.";
+                return;
+            }
+
+            _link.DisplayName = _model.DisplayName.Trim();
+            _link.Url = _model.Url.Trim();
+
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var ok = await CharacterLinksService.UpdateAsync(auth.User, Id, _model.Name, _model.Url);
+            var ok = await LinkedCharacterService.UpdateAsync(_link, auth.User);
 
             if (!ok)
             {
@@ -125,7 +136,7 @@
                 return;
             }
 
-            Nav.NavigateTo($"/campaigns/{_campaignId}/characters");
+            Nav.NavigateTo(_backHref);
         }
         catch (Exception ex)
         {

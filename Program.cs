@@ -6,6 +6,7 @@ using DontNeglectYourDungeon.Components.Account;
 using DontNeglectYourDungeon.Data;
 using DontNeglectYourDungeon.Data.Services;
 using DontNeglectYourDungeon.Data.Services.Interfaces;
+using MudBlazor.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,12 +45,11 @@ builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<ILinkedCharacterService, LinkedCharacterService>();
-builder.Services.AddScoped<DontNeglectYourDungeon.Data.QA.QaSmokeTests>();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
-builder.Services.AddScoped<ICharacterLinkService, CharacterLinkService>();
+builder.Services.AddMudServices();
 
 
 

@@ -1,8 +1,9 @@
-@page "/campaigns/{Id:int}/edit"
+@page "/campaigns/{CampaignId:int}/edit"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 @using System.ComponentModel.DataAnnotations
-@using DontNeglectYourDungeon.Services
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ICampaignService CampaignsService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Nav
@@ -12,7 +13,7 @@
         <div class="brand-badge">🛠</div>
         <div>
             <h1 class="h1">Edit Campaign</h1>
-            <div class="muted">Keep the ledger tidy.</div>
+            <div class="muted">Refine the tale; clarify the quest.</div>
         </div>
     </div>
 </div>
@@ -31,20 +32,20 @@
     }
     else
     {
-        <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="EditCampain">
+        <EditForm Model="_model" OnValidSubmit="@SaveAsync" FormName="EditCampaign">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div style="display:grid; gap:.75rem;">
                 <div>
-                    <label>Campaign Name</label>
+                    <label>Name</label>
                     <InputText @bind-Value="_model.Name" />
                     <ValidationMessage For="@(() => _model.Name)" />
                 </div>
 
                 <div>
                     <label>Description (optional)</label>
-                    <InputTextArea @bind-Value="_model.Description" rows="4" />
+                    <InputTextArea @bind-Value="_model.Description" rows="6" />
                     <ValidationMessage For="@(() => _model.Description)" />
                 </div>
 
@@ -55,7 +56,7 @@
 
                 <div style="display:flex; gap:.75rem; margin-top:.5rem;">
                     <button class="btn" type="submit" disabled="@_saving">Save</button>
-                    <a class="btn" href="@($"/campaigns/{Id}")">Cancel</a>
+                    <a class="btn" href="@_cancelHref">Cancel</a>
                 </div>
             </div>
         </EditForm>
@@ -63,21 +64,24 @@
 </div>
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public int CampaignId { get; set; }
 
     private bool _loading = true;
     private bool _saving;
     private bool _notFound;
     private string _error = string.Empty;
 
+    private string _cancelHref = "/campaigns";
+
+    private Campaign? _campaign;
     private CampaignEditModel _model = new();
 
     public class CampaignEditModel
     {
-        [Required, StringLength(80, MinimumLength = 2)]
-        public string Name { get; set; } = string.Empty;
+        [Required, StringLength(100, MinimumLength = 2)]
+        public string Name { get; set; } = "";
 
-        [StringLength(600)]
+        [StringLength(2000)]
         public string? Description { get; set; }
     }
 
@@ -88,18 +92,21 @@
         _error = string.Empty;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var campaign = await CampaignsService.GetMineByIdAsync(auth.User, Id);
 
-        if (campaign is null)
+        // ✅ Adjust name/signature if needed
+        _campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
+
+        if (_campaign is null)
         {
             _notFound = true;
-        }
-        else
-        {
-            _model.Name = campaign.Name;
-            _model.Description = campaign.Description;
+            _loading = false;
+            return;
         }
 
+        _model.Name = _campaign.Name;
+        _model.Description = _campaign.Description;
+
+        _cancelHref = $"/campaigns/{CampaignId}";
         _loading = false;
     }
 
@@ -110,8 +117,19 @@
 
         try
         {
+            if (_campaign is null)
+            {
+                _error = "Campaign not loaded.";
+                return;
+            }
+
+            _campaign.Name = _model.Name.Trim();
+            _campaign.Description = string.IsNullOrWhiteSpace(_model.Description) ? null : _model.Description.Trim();
+
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-            var ok = await CampaignsService.UpdateAsync(auth.User, Id, _model.Name, _model.Description);
+
+            // ✅ If UpdateAsync returns bool:
+            var ok = await CampaignsService.UpdateAsync(_campaign, auth.User);
 
             if (!ok)
             {
@@ -119,7 +137,7 @@
                 return;
             }
 
-            Nav.NavigateTo($"/campaigns/{Id}");
+            Nav.NavigateTo($"/campaigns/{CampaignId}");
         }
         catch (Exception ex)
         {
