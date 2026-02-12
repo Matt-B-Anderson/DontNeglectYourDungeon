@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using DontNeglectYourDungeon.Components;
 using DontNeglectYourDungeon.Components.Account;
 using DontNeglectYourDungeon.Data;
-using DontNeglectYourDungeon.Services;
-using MudBlazor.Services;
+using DontNeglectYourDungeon.Data.Services;
+using DontNeglectYourDungeon.Data.Services.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,14 +32,20 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = true;
+        options.SignIn.RequireConfirmedAccount = false;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddMudServices();
+// Data and CRUD services (do not touch, im not sure about some connections)
+builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+builder.Services.AddScoped<ILinkedCharacterService, LinkedCharacterService>();
+builder.Services.AddScoped<DontNeglectYourDungeon.Data.QA.QaSmokeTests>();
+
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISessionService, SessionService>();

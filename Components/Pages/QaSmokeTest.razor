@@ -1,0 +1,49 @@
+@page "/qa-smoke-test"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using System.Security.Claims
+@using DontNeglectYourDungeon.Data.QA
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject QaSmokeTests Qa
+
+<h3>QA Smoke Test</h3>
+
+<p><b>Current UserId:</b> @_userId</p>
+
+<button class="btn btn-primary" @onclick="Run">Run Smoke Tests</button>
+
+@if (_results is not null)
+{
+    <ul>
+        @foreach (var r in _results)
+        {
+            <li>
+                <b>@r.Name</b> :
+                <span>@(r.Passed ? "✅ PASS" : "❌ FAIL")</span>
+                @if (!string.IsNullOrWhiteSpace(r.Details))
+                {
+                    <span> — @r.Details</span>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private string _userId = "";
+    private List<QaResult>? _results;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        _userId = state.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+    }
+
+    private async Task Run()
+    {
+        // userB can be any fake id to validate “non-owner blocked”
+        _results = await Qa.RunAsync(_userId, "qa-other-user");
+    }
+}

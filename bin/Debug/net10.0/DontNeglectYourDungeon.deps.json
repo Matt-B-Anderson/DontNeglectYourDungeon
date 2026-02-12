@@ -12,7 +12,11 @@
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "10.0.2",
           "Microsoft.EntityFrameworkCore.Design": "10.0.3",
           "Microsoft.EntityFrameworkCore.Sqlite": "10.0.2",
+<<<<<<< HEAD
           "MudBlazor": "8.15.0"
+=======
+          "Microsoft.EntityFrameworkCore.Tools": "10.0.3"
+>>>>>>> a6185c00b6ddfb6fa05f94aaff8355a184bbb0c2
         },
         "runtime": {
           "DontNeglectYourDungeon.dll": {}
@@ -410,6 +414,14 @@
           }
         }
       },
+<<<<<<< HEAD
+=======
+      "Microsoft.EntityFrameworkCore.Tools/10.0.3": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Design": "10.0.3"
+        }
+      },
+>>>>>>> a6185c00b6ddfb6fa05f94aaff8355a184bbb0c2
       "Microsoft.Extensions.DependencyModel/10.0.3": {
         "runtime": {
           "lib/net10.0/Microsoft.Extensions.DependencyModel.dll": {
@@ -791,9 +803,22 @@
       "path": "microsoft.entityframeworkcore.sqlite.core/10.0.2",
       "hashPath": "microsoft.entityframeworkcore.sqlite.core.10.0.2.nupkg.sha512"
     },
+<<<<<<< HEAD
     "Microsoft.Extensions.DependencyModel/10.0.3": {
       "type": "package",
       "serviceable": true,
+=======
+    "Microsoft.EntityFrameworkCore.Tools/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-m6DcnrjYfYwNrxcLjchzehd7kLEVGo33Vq83O2y6GXtEgAL0JdBTWtqZzGuRa/8YFcrEUxfYlsSpu4w1SdYcAg==",
+      "path": "microsoft.entityframeworkcore.tools/10.0.3",
+      "hashPath": "microsoft.entityframeworkcore.tools.10.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.DependencyModel/10.0.3": {
+      "type": "package",
+      "serviceable": true,
+>>>>>>> a6185c00b6ddfb6fa05f94aaff8355a184bbb0c2
       "sha512": "sha512-31kRjr1fgdJO1UZ/AsjL2noqwht+juHMQ8c/oh8CEsDhlM2+0zwVZVsZjxSfOFiPtn5+6kRGuvSbLAufAPT0kA==",
       "path": "microsoft.extensions.dependencymodel/10.0.3",
       "hashPath": "microsoft.extensions.dependencymodel.10.0.3.nupkg.sha512"
