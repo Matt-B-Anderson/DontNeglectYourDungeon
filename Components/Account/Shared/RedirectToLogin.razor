@@ -3,6 +3,16 @@
 @code {
     protected override void OnInitialized()
     {
-        NavigationManager.NavigateTo($"Account/Login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", forceLoad: true);
+        var relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        if (string.IsNullOrWhiteSpace(relative))
+            relative = "/";
+
+        // Ensure it starts with '/'
+        if (!relative.StartsWith('/'))
+            relative = "/" + relative;
+
+        NavigationManager.NavigateTo(
+            $"/Account/Login?returnUrl={Uri.EscapeDataString(relative)}"
+        );
     }
 }

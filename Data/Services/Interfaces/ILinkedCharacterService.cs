@@ -1,12 +1,13 @@
 using DontNeglectYourDungeon.Data.Models;
+using System.Security.Claims;
 
 namespace DontNeglectYourDungeon.Data.Services.Interfaces;
 
 public interface ILinkedCharacterService
 {
-    Task<List<LinkedCharacter>> GetForUserAsync(string currentUserId);
+    Task<List<LinkedCharacter>> GetForUserAsync(ClaimsPrincipal user);
 
-    Task<LinkedCharacter> CreateAsync(LinkedCharacter link, string currentUserId);
-    Task<bool> UpdateAsync(LinkedCharacter link, string currentUserId);
-    Task<bool> DeleteAsync(int linkedCharacterId, string currentUserId);
+    Task<LinkedCharacter> CreateAsync(LinkedCharacter link, ClaimsPrincipal user);
+    Task<bool> UpdateAsync(LinkedCharacter link, ClaimsPrincipal user);
+    Task<bool> DeleteAsync(int linkedCharacterId, ClaimsPrincipal user);
 }

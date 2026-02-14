@@ -1,0 +1,12 @@
+@using MudBlazor
+@rendermode InteractiveServer
+
+<MudThemeProvider Theme="@Theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+@code {
+    [Parameter]
+    public MudTheme? Theme { get; set; }
+}

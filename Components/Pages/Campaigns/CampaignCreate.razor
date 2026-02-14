@@ -1,0 +1,114 @@
+@page "/campaigns/new"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🪶</div>
+        <div>
+            <h1 class="h1">Create Campaign</h1>
+            <div class="muted">Name your tale; set the stage.</div>
+        </div>
+    </div>
+
+    <a class="btn" href="/campaigns">Back</a>
+</div>
+
+<div class="tavern-card">
+    <EditForm Model="_model" OnValidSubmit="@CreateAsync" FormName="CreateCampaign">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div style="display:grid; gap:.75rem;">
+            <div>
+                <label>Name</label>
+                <InputText @bind-Value="_model.Name" />
+                <ValidationMessage For="@(() => _model.Name)" />
+            </div>
+
+            <div>
+                <label>System (optional)</label>
+                <InputText @bind-Value="_model.System" placeholder="e.g., D&D 5e, Pathfinder, etc." />
+                <ValidationMessage For="@(() => _model.System)" />
+            </div>
+
+            <div>
+                <label>Description (optional)</label>
+                <InputTextArea @bind-Value="_model.Description" rows="6" />
+                <ValidationMessage For="@(() => _model.Description)" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="validation-message">@_error</div>
+            }
+
+            <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                <button class="btn" type="submit" disabled="@_saving">Create</button>
+                <a class="btn" href="/campaigns">Cancel</a>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private bool _saving;
+    private string _error = string.Empty;
+
+    private CampaignCreateModel _model = new();
+
+    public class CampaignCreateModel
+    {
+        [Required, StringLength(80, MinimumLength = 2)]
+        public string Name { get; set; } = "";
+
+        [StringLength(40)]
+        public string? System { get; set; }
+
+        [StringLength(1000)]
+        public string? Description { get; set; }
+    }
+
+    private async Task CreateAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            var campaign = new Campaign
+            {
+                Name = _model.Name.Trim(),
+                System = string.IsNullOrWhiteSpace(_model.System) ? null : _model.System.Trim(),
+                Description = string.IsNullOrWhiteSpace(_model.Description) ? null : _model.Description.Trim()
+            };
+
+            // ✅ If your teammate service returns Campaign, use it.
+            // ✅ If it returns int campaignId, adjust just this line.
+            var created = await CampaignsService.CreateAsync(campaign, auth.User);
+
+            // If CreateAsync returns Campaign:
+            Nav.NavigateTo($"/campaigns/{created.Id}");
+
+            // If CreateAsync returns int:
+            // Nav.NavigateTo($"/campaigns/{created}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

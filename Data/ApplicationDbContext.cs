@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using DontNeglectYourDungeon.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DontNeglectYourDungeon.Data;
 

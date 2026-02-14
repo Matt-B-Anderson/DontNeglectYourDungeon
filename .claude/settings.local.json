@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet run:*)",
+      "Bash(timeout:*)",
+      "Bash(dotnet ef database:*)",
+      "Bash(dotnet build:*)",
+      "Bash(sqlite3:*)",
+      "Bash(if exist Dataapp.db del Dataapp.db)",
+      "Bash(if exist Dataapp.db-shm del Dataapp.db-shm)",
+      "Bash(if exist Dataapp.db-wal del Dataapp.db-wal)",
+      "Bash(dotnet ef migrations:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}

@@ -1,0 +1,136 @@
+@page "/campaigns/{CampaignId:int}/sessions"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ISessionService SessionsService
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">📅</div>
+        <div>
+            <h1 class="h1">Sessions</h1>
+            <div class="muted">@(_campaignName ?? "Campaign")</div>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:.5rem;">
+        <a class="btn" href="@($"/campaigns/{CampaignId}/sessions/new")">+ Schedule</a>
+        <a class="btn" href="/campaigns">Back</a>
+    </div>
+</div>
+
+<div class="tavern-card">
+
+    @if (_loading)
+    {
+        <div class="muted">Loading sessions…</div>
+    }
+    else if (_noAccess)
+    {
+        <div class="validation-message">
+            Campaign not found (or you don’t have access).
+        </div>
+    }
+    else if (_sessions.Count == 0)
+    {
+        <div class="muted">No sessions scheduled yet.</div>
+
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="@($"/campaigns/{CampaignId}/sessions/new")">
+                Schedule your first session
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var session in _sessions.OrderByDescending(s => s.SessionDate))
+        {
+            <div class="tavern-card" style="background: var(--panel2);">
+
+                <div style="display:flex; justify-content:space-between; gap:1rem;">
+                    <div>
+
+                        <div style="font-weight:800;">
+                            @session.Title
+                        </div>
+
+                        <div class="muted" style="margin-top:.25rem;">
+                            @session.SessionDate.ToString("ddd, MMM d 'at' h:mm tt")
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(session.Summary))
+                        {
+                            <div class="muted" style="margin-top:.5rem;">
+                                <strong>Summary:</strong>
+                                @session.Summary
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(session.NextSteps))
+                        {
+                            <div class="muted" style="margin-top:.25rem;">
+                                <strong>Next:</strong>
+                                @session.NextSteps
+                            </div>
+                        }
+
+                        <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                            <a class="btn" href="@($"/sessions/{session.Id}")">
+                                View
+                            </a>
+
+                            <a class="btn" href="@($"/sessions/{session.Id}/edit")">
+                                Edit
+                            </a>
+
+                            <a class="btn btn-danger" href="@($"/sessions/{session.Id}/delete")">
+                                Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public int CampaignId { get; set; }
+
+    private bool _loading = true;
+    private bool _noAccess;
+    private string? _campaignName;
+
+    private List<Session> _sessions = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _noAccess = false;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        var campaign = await CampaignsService
+            .GetOwnedByUserAsync(CampaignId, auth.User);
+
+        if (campaign is null)
+        {
+            _noAccess = true;
+            _sessions = new();
+            _loading = false;
+            return;
+        }
+
+        _campaignName = campaign.Name;
+
+        _sessions = await SessionsService
+            .GetForCampaignAsync(CampaignId, auth.User);
+
+        _loading = false;
+    }
+}

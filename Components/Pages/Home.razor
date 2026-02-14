@@ -1,6 +1,9 @@
 ﻿@page "/"
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+
 @using Microsoft.AspNetCore.Authorization
 
+@inject NavigationManager Nav
 <PageTitle>Home</PageTitle>
 
 <p class="lead">Welcome to</p>

@@ -1,0 +1,109 @@
+@page "/sessions/{SessionId:int}"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ISessionService SessionsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">📖</div>
+        <div>
+            <h1 class="h1">@(_session?.Title ?? "Session")</h1>
+            <div class="muted">
+                @(_session is null ? "" : _session.SessionDate.ToString("ddd, MMM d 'at' h:mm tt"))
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:.5rem;">
+        @if (_session is not null)
+        {
+            <a class="btn" href="@($"/sessions/{SessionId}/edit")">Edit</a>
+            <a class="btn btn-danger" href="@($"/sessions/{SessionId}/delete")">Delete</a>
+            <a class="btn" href="@($"/campaigns/{_session.CampaignId}/sessions")">Back</a>
+        }
+        else
+        {
+            <a class="btn" href="/campaigns">Back</a>
+        }
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_session is null)
+    {
+        <div class="validation-message">Session not found (or you don’t have access).</div>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_session.LocationOrLink))
+        {
+            <div class="muted">
+                <strong>Location/Link:</strong> @_session.LocationOrLink
+            </div>
+            <div style="margin-top:.5rem;">
+                <a class="btn" href="@_session.LocationOrLink" target="_blank" rel="noopener noreferrer">Open</a>
+            </div>
+            <div style="margin-top:1rem;"></div>
+        }
+
+        <div style="display:grid; gap:1rem;">
+            <div>
+                <div style="font-weight:800;">Summary</div>
+                @if (string.IsNullOrWhiteSpace(_session.Summary))
+                {
+                    <div class="muted" style="margin-top:.25rem;">No summary yet.</div>
+                }
+                else
+                {
+                    <div class="muted" style="margin-top:.25rem; white-space:pre-wrap;">@_session.Summary</div>
+                }
+            </div>
+
+            <div>
+                <div style="font-weight:800;">Next Steps</div>
+                @if (string.IsNullOrWhiteSpace(_session.NextSteps))
+                {
+                    <div class="muted" style="margin-top:.25rem;">No next steps yet.</div>
+                }
+                else
+                {
+                    <div class="muted" style="margin-top:.25rem; white-space:pre-wrap;">@_session.NextSteps</div>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="validation-message" style="margin-top:1rem;">@_error</div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public int SessionId { get; set; }
+
+    private bool _loading = true;
+    private string _error = string.Empty;
+
+    private Session? _session;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _error = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        _session = await SessionsService.GetByIdAsync(SessionId, auth.User);
+
+        _loading = false;
+    }
+}
