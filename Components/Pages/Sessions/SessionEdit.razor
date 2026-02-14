@@ -1,0 +1,208 @@
+@page "/sessions/{SessionId:int}/edit"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+@using MudBlazor
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ISessionService SessionsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🧭</div>
+        <div>
+            <h1 class="h1">Edit Session</h1>
+            <div class="muted">Adjust the schedule; keep the party aligned.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_notFound)
+    {
+        <div class="validation-message">Session not found (or you don’t have access).</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="/campaigns">Return</a>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="_model" OnValidSubmit="@SaveAsync" FormName="EditSession">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div style="display:grid; gap:.75rem;">
+                <div>
+                    <label>Title</label>
+                    <InputText @bind-Value="_model.Title" />
+                    <ValidationMessage For="@(() => _model.Title)" />
+                </div>
+
+                <div>
+                    <label>Date</label>
+                    <MudDatePicker @bind-Date="_model.ScheduledDate"
+                                   PickerVariant="PickerVariant.Inline"
+                                   DateFormat="MM/dd/yyyy"
+                                   Required="true" />
+                    <ValidationMessage For="@(() => _model.ScheduledDate)" />
+                </div>
+
+                <div>
+                    <label>Time</label>
+                    <MudTimePicker @bind-Time="_model.ScheduledTime" AmPm="true" Required="true" />
+                    <ValidationMessage For="@(() => _model.ScheduledTime)" />
+                </div>
+
+                <div>
+                    <label>Location / Link (optional)</label>
+                    <InputText @bind-Value="_model.LocationOrLink" />
+                    <ValidationMessage For="@(() => _model.LocationOrLink)" />
+                </div>
+
+                <div>
+                    <label>Summary (optional)</label>
+                    <InputTextArea @bind-Value="_model.Summary" rows="4" />
+                    <ValidationMessage For="@(() => _model.Summary)" />
+                </div>
+
+                <div>
+                    <label>Next Steps (optional)</label>
+                    <InputTextArea @bind-Value="_model.NextSteps" rows="4" />
+                    <ValidationMessage For="@(() => _model.NextSteps)" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <div class="validation-message">@_error</div>
+                }
+
+                <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <button class="btn" type="submit" disabled="@_saving">Save</button>
+                    <a class="btn" href="@_cancelHref">Cancel</a>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public int SessionId { get; set; }
+
+    private bool _loading = true;
+    private bool _saving;
+    private bool _notFound;
+    private string _error = string.Empty;
+
+    private string _cancelHref = "/campaigns";
+
+    private Session? _session;
+    private SessionEditModel _model = new();
+
+    public class SessionEditModel
+    {
+        [Required, StringLength(100, MinimumLength = 2)]
+        public string Title { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime? ScheduledDate { get; set; } = DateTime.Today;
+
+        [Required]
+        public TimeSpan? ScheduledTime { get; set; } = TimeSpan.FromHours(19);
+
+        [StringLength(200)]
+        public string? LocationOrLink { get; set; }
+
+        [StringLength(2000)]
+        public string? Summary { get; set; }
+
+        [StringLength(2000)]
+        public string? NextSteps { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+        _error = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        _session = await SessionsService.GetByIdAsync(SessionId, auth.User);
+
+        if (_session is null)
+        {
+            _notFound = true;
+            _loading = false;
+            return;
+        }
+
+        _model.Title = _session.Title;
+
+        // NOTE: service stores SessionDate as-is. Don't force UTC conversion here.
+        var local = _session.SessionDate;
+        _model.ScheduledDate = local.Date;
+        _model.ScheduledTime = local.TimeOfDay;
+
+        _model.LocationOrLink = _session.LocationOrLink;
+        _model.Summary = _session.Summary;
+        _model.NextSteps = _session.NextSteps;
+
+        _cancelHref = $"/sessions/{SessionId}";
+        _loading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+
+        try
+        {
+            if (_session is null)
+            {
+                _error = "Session not loaded.";
+                return;
+            }
+
+            if (_model.ScheduledDate is null || _model.ScheduledTime is null)
+            {
+                _error = "Please select a valid date and time.";
+                return;
+            }
+
+            var scheduledLocal = _model.ScheduledDate.Value.Date + _model.ScheduledTime.Value;
+
+            // Build/update the session object that UpdateAsync expects:
+            _session.Title = _model.Title.Trim();
+            _session.SessionDate = scheduledLocal;
+            _session.LocationOrLink = string.IsNullOrWhiteSpace(_model.LocationOrLink) ? null : _model.LocationOrLink.Trim();
+            _session.Summary = string.IsNullOrWhiteSpace(_model.Summary) ? null : _model.Summary.Trim();
+            _session.NextSteps = string.IsNullOrWhiteSpace(_model.NextSteps) ? null : _model.NextSteps.Trim();
+
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var ok = await SessionsService.UpdateAsync(_session, auth.User);
+
+            if (!ok)
+            {
+                _error = "Could not save—session not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo($"/sessions/{SessionId}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

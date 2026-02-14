@@ -1,0 +1,76 @@
+@page "/campaigns"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🏰</div>
+        <div>
+            <h1 class="h1">Campaigns</h1>
+            <div class="muted">Your active adventures; all in one ledger.</div>
+        </div>
+    </div>
+
+    <a class="btn" href="/campaigns/new">+ New Campaign</a>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_campaigns.Count == 0)
+    {
+        <div class="muted">No campaigns yet.</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="/campaigns/new">Create your first campaign</a>
+        </div>
+    }
+    else
+    {
+        @foreach (var c in _campaigns.OrderByDescending(x => x.CreatedUtc))
+        {
+            <div class="tavern-card" style="background: var(--panel2);">
+                <div style="display:flex; justify-content:space-between; gap:1rem;">
+                    <div>
+                        <div style="font-weight:800;">@c.Name</div>
+                        @if (!string.IsNullOrWhiteSpace(c.Description))
+                        {
+                            <div class="muted" style="margin-top:.25rem; white-space:pre-wrap;">@c.Description</div>
+                        }
+                        <div class="muted" style="margin-top:.5rem;">
+                            Created: @c.CreatedUtc.ToLocalTime().ToString("MMM d, yyyy")
+                        </div>
+
+                        <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                            <a class="btn" href="@($"/campaigns/{c.Id}")">Open</a>
+                            <a class="btn" href="@($"/campaigns/{c.Id}/edit")">Edit</a>
+                            <a class="btn btn-danger" href="@($"/campaigns/{c.Id}/delete")">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private List<Campaign> _campaigns = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        _campaigns = await CampaignsService.GetForUserAsync(auth.User);
+
+        _loading = false;
+    }
+}

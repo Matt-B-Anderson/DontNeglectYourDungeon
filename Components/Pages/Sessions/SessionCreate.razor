@@ -1,0 +1,173 @@
+@page "/campaigns/{CampaignId:int}/sessions/new"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+@using MudBlazor
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ISessionService SessionsService
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🕯</div>
+        <div>
+            <h1 class="h1">Schedule Session</h1>
+            <div class="muted">@(_campaignName ?? "Campaign")</div>
+        </div>
+    </div>
+
+    <a class="btn" href="@($"/campaigns/{CampaignId}/sessions")">Back</a>
+</div>
+
+<div class="tavern-card">
+    @if (_noAccess)
+    {
+        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+    }
+    else
+    {
+        <EditForm Model="_model" OnValidSubmit="@CreateAsync" FormName="CreateSession">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div style="display:grid; gap:.75rem;">
+                <div>
+                    <label>Title</label>
+                    <InputText @bind-Value="_model.Title" />
+                    <ValidationMessage For="@(() => _model.Title)" />
+                </div>
+
+                <div>
+                    <label>Date</label>
+                    <MudDatePicker @bind-Date="_model.ScheduledDate"
+                                   PickerVariant="PickerVariant.Inline"
+                                   DateFormat="MM/dd/yyyy"
+                                   Required="true" />
+                    <ValidationMessage For="@(() => _model.ScheduledDate)" />
+                </div>
+
+                <div>
+                    <label>Time</label>
+                    <MudTimePicker @bind-Time="_model.ScheduledTime"
+                                   AmPm="true"
+                                   Required="true" />
+                    <ValidationMessage For="@(() => _model.ScheduledTime)" />
+                </div>
+
+                <div>
+                    <label>Location / Link (optional)</label>
+                    <InputText @bind-Value="_model.LocationOrLink" />
+                    <ValidationMessage For="@(() => _model.LocationOrLink)" />
+                </div>
+
+                <div>
+                    <label>Summary (optional)</label>
+                    <InputTextArea @bind-Value="_model.Summary" rows="4" />
+                    <ValidationMessage For="@(() => _model.Summary)" />
+                </div>
+
+                <div>
+                    <label>Next Steps (optional)</label>
+                    <InputTextArea @bind-Value="_model.NextSteps" rows="4" />
+                    <ValidationMessage For="@(() => _model.NextSteps)" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <div class="validation-message">@_error</div>
+                }
+
+                <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <button class="btn" type="submit" disabled="@_saving">Schedule</button>
+                    <a class="btn" href="@($"/campaigns/{CampaignId}/sessions")">Cancel</a>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public int CampaignId { get; set; }
+
+    private string? _campaignName;
+    private bool _noAccess;
+    private bool _saving;
+    private string _error = string.Empty;
+
+    private SessionCreateModel _model = new();
+
+    public class SessionCreateModel
+    {
+        [Required, StringLength(100, MinimumLength = 2)]
+        public string Title { get; set; } = "Session";
+
+        [Required]
+        public DateTime? ScheduledDate { get; set; } = DateTime.Today;
+
+        [Required]
+        public TimeSpan? ScheduledTime { get; set; } = DateTime.Now.TimeOfDay;
+
+        [StringLength(200)]
+        public string? LocationOrLink { get; set; }
+
+        [StringLength(2000)]
+        public string? Summary { get; set; }
+
+        [StringLength(2000)]
+        public string? NextSteps { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
+
+        _noAccess = campaign is null;
+        _campaignName = campaign?.Name;
+    }
+
+    private async Task CreateAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+
+        try
+        {
+            if (_model.ScheduledDate is null || _model.ScheduledTime is null)
+            {
+                _error = "Please select a valid date and time.";
+                return;
+            }
+
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            var scheduledLocal = _model.ScheduledDate.Value.Date + _model.ScheduledTime.Value;
+
+            var session = new Session
+            {
+                CampaignId = CampaignId,
+                Title = _model.Title.Trim(),
+                SessionDate = scheduledLocal, // service persists as-is
+                LocationOrLink = string.IsNullOrWhiteSpace(_model.LocationOrLink) ? null : _model.LocationOrLink.Trim(),
+                Summary = string.IsNullOrWhiteSpace(_model.Summary) ? null : _model.Summary.Trim(),
+                NextSteps = string.IsNullOrWhiteSpace(_model.NextSteps) ? null : _model.NextSteps.Trim()
+            };
+
+            var created = await SessionsService.CreateAsync(session, auth.User);
+
+            Nav.NavigateTo($"/sessions/{created.Id}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

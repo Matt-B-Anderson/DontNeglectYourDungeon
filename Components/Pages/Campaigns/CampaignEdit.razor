@@ -1,0 +1,163 @@
+@page "/campaigns/{CampaignId:int}/edit"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🛠</div>
+        <div>
+            <h1 class="h1">Edit Campaign</h1>
+            <div class="muted">Refine the tale; clarify the quest.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_notFound)
+    {
+        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="/campaigns">Return</a>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="_model" OnValidSubmit="@SaveAsync" FormName="EditCampaign">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div style="display:grid; gap:.75rem;">
+                <div>
+                    <label>Name</label>
+                    <InputText @bind-Value="_model.Name" />
+                    <ValidationMessage For="@(() => _model.Name)" />
+                </div>
+
+                <div>
+                    <label>System (optional)</label>
+                    <InputText @bind-Value="_model.System" placeholder="e.g., D&D 5e, Pathfinder, etc." />
+                    <ValidationMessage For="@(() => _model.System)" />
+                </div>
+
+                <div>
+                    <label>Description (optional)</label>
+                    <InputTextArea @bind-Value="_model.Description" rows="6" />
+                    <ValidationMessage For="@(() => _model.Description)" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_error))
+                {
+                    <div class="validation-message">@_error</div>
+                }
+
+                <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <button class="btn" type="submit" disabled="@_saving">Save</button>
+                    <a class="btn" href="@_cancelHref">Cancel</a>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter] public int CampaignId { get; set; }
+
+    private bool _loading = true;
+    private bool _saving;
+    private bool _notFound;
+    private string _error = string.Empty;
+
+    private string _cancelHref = "/campaigns";
+
+    private Campaign? _campaign;
+    private CampaignEditModel _model = new();
+
+    public class CampaignEditModel
+    {
+        [Required, StringLength(80, MinimumLength = 2)]
+        public string Name { get; set; } = "";
+
+        [StringLength(40)]
+        public string? System { get; set; }
+
+        [StringLength(1000)]
+        public string? Description { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+        _error = string.Empty;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        // ✅ Adjust name/signature if needed
+        _campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
+
+        if (_campaign is null)
+        {
+            _notFound = true;
+            _loading = false;
+            return;
+        }
+
+        _model.Name = _campaign.Name;
+        _model.System = _campaign.System;
+        _model.Description = _campaign.Description;
+
+        _cancelHref = $"/campaigns/{CampaignId}";
+        _loading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+
+        try
+        {
+            if (_campaign is null)
+            {
+                _error = "Campaign not loaded.";
+                return;
+            }
+
+            _campaign.Name = _model.Name.Trim();
+            _campaign.System = string.IsNullOrWhiteSpace(_model.System) ? null : _model.System.Trim();
+            _campaign.Description = string.IsNullOrWhiteSpace(_model.Description) ? null : _model.Description.Trim();
+
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            // ✅ If UpdateAsync returns bool:
+            var ok = await CampaignsService.UpdateAsync(_campaign, auth.User);
+
+            if (!ok)
+            {
+                _error = "Could not save—campaign not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo($"/campaigns/{CampaignId}");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

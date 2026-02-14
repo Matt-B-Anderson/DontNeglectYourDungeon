@@ -1,7 +1,27 @@
 ﻿@page "/"
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 
-<PageTitle>Home</PageTitle>
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
 
-<h1>Hello, world!</h1>
+<div class="tavern-card">
+    <div class="muted">Loading…</div>
+</div>
 
-Welcome to your new app.
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            Nav.NavigateTo("/campaigns", replace: true);
+        }
+        else
+        {
+            // Default Identity UI login route (works with the Blazor Web App template)
+            Nav.NavigateTo("/Account/Login", replace: true);
+        }
+    }
+}

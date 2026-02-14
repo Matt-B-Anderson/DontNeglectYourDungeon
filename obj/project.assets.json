@@ -565,6 +565,26 @@
           "buildTransitive/Mono.TextTemplating.targets": {}
         }
       },
+      "MudBlazor/8.15.0": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/MudBlazor.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/MudBlazor.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "build/MudBlazor.targets": {},
+          "buildTransitive/MudBlazor.props": {}
+        },
+        "buildMultiTargeting": {
+          "buildMultiTargeting/MudBlazor.props": {}
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "type": "package",
         "compile": {
@@ -2212,6 +2232,33 @@
         "readme.md"
       ]
     },
+    "MudBlazor/8.15.0": {
+      "sha512": "iOJEnQ6tYGQPfPJaUazyC8H6pcczgaMX7vhUzrJPpB0WqEXNozwMfSzoOe2/JZmVWJcUfYZgKBeBU2Z27XY7Sw==",
+      "type": "package",
+      "path": "mudblazor/8.15.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "Nuget.png",
+        "README.md",
+        "analyzers/dotnet/cs/MudBlazor.Analyzers.dll",
+        "build/Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+        "build/Microsoft.AspNetCore.StaticWebAssets.props",
+        "build/MudBlazor.props",
+        "build/MudBlazor.targets",
+        "buildMultiTargeting/MudBlazor.props",
+        "buildTransitive/MudBlazor.props",
+        "lib/net8.0/MudBlazor.dll",
+        "lib/net8.0/MudBlazor.xml",
+        "lib/net9.0/MudBlazor.dll",
+        "lib/net9.0/MudBlazor.xml",
+        "mudblazor.8.15.0.nupkg.sha512",
+        "mudblazor.nuspec",
+        "staticwebassets/MudBlazor.min.css",
+        "staticwebassets/MudBlazor.min.js"
+      ]
+    },
     "Newtonsoft.Json/13.0.3": {
       "sha512": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "type": "package",
@@ -2528,29 +2575,38 @@
       "Microsoft.AspNetCore.App.Internal.Assets >= 10.0.2",
       "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore >= 10.0.2",
       "Microsoft.AspNetCore.Identity.EntityFrameworkCore >= 10.0.2",
+      "Microsoft.EntityFrameworkCore.Design >= 10.0.3",
       "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.2",
-      "Microsoft.EntityFrameworkCore.Tools >= 10.0.3"
+      "Microsoft.EntityFrameworkCore.Tools >= 10.0.3",
+      "MudBlazor >= 8.15.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\George\\.nuget\\packages\\": {}
+    "C:\\Users\\mande.AIWIN\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Web PP\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj",
+      "projectUniqueName": "F:\\code\\BYUPathway\\cse325\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj",
       "projectName": "DontNeglectYourDungeon",
-      "projectPath": "D:\\Web PP\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj",
-      "packagesPath": "C:\\Users\\George\\.nuget\\packages\\",
-      "outputPath": "D:\\Web PP\\DontNeglectYourDungeon\\obj\\",
+      "projectPath": "F:\\code\\BYUPathway\\cse325\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj",
+      "packagesPath": "C:\\Users\\mande.AIWIN\\.nuget\\packages\\",
+      "outputPath": "F:\\code\\BYUPathway\\cse325\\DontNeglectYourDungeon\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\George\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\mande.AIWIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -2589,6 +2645,12 @@
             "target": "Package",
             "version": "[10.0.2, )"
           },
+          "Microsoft.EntityFrameworkCore.Design": {
+            "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+            "suppressParent": "All",
+            "target": "Package",
+            "version": "[10.0.3, )"
+          },
           "Microsoft.EntityFrameworkCore.Sqlite": {
             "target": "Package",
             "version": "[10.0.2, )"
@@ -2598,6 +2660,10 @@
             "suppressParent": "All",
             "target": "Package",
             "version": "[10.0.3, )"
+          },
+          "MudBlazor": {
+            "target": "Package",
+            "version": "[8.15.0, )"
           }
         },
         "imports": [

@@ -1,0 +1,116 @@
+@page "/campaigns/{CampaignId:int}/delete"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+
+@using DontNeglectYourDungeon.Data.Models
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🔥</div>
+        <div>
+            <h1 class="h1">Delete Campaign</h1>
+            <div class="muted">This will remove the campaign and all its sessions/links.</div>
+        </div>
+    </div>
+</div>
+
+<div class="tavern-card">
+    @if (_loading)
+    {
+        <div class="muted">Loading…</div>
+    }
+    else if (_notFound)
+    {
+        <div class="validation-message">Campaign not found (or you don’t have access).</div>
+    }
+    else
+    {
+        <div style="font-weight:800;">@_name</div>
+
+        @if (!string.IsNullOrWhiteSpace(_description))
+        {
+            <div class="muted" style="margin-top:.25rem; white-space:pre-wrap;">@_description</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="validation-message" style="margin-top:.75rem;">@_error</div>
+        }
+
+        <div style="display:flex; gap:.75rem; margin-top:1rem;">
+            <button class="btn btn-danger" disabled="@_deleting" @onclick="DeleteAsync">Yes, delete</button>
+            <a class="btn" href="@_cancelHref">Cancel</a>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int CampaignId { get; set; }
+
+    private bool _loading = true;
+    private bool _deleting;
+    private bool _notFound;
+    private string _error = string.Empty;
+
+    private string _name = "Campaign";
+    private string? _description;
+    private string _cancelHref = "/campaigns";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        // ✅ Adjust name/signature if needed
+        var campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
+
+        if (campaign is null)
+        {
+            _notFound = true;
+            _loading = false;
+            return;
+        }
+
+        _name = campaign.Name;
+        _description = campaign.Description;
+        _cancelHref = $"/campaigns/{CampaignId}";
+
+        _loading = false;
+    }
+
+    private async Task DeleteAsync()
+    {
+        _deleting = true;
+        _error = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            // ✅ If DeleteAsync expects (id, user) and returns bool:
+            var ok = await CampaignsService.DeleteAsync(CampaignId, auth.User);
+
+            if (!ok)
+            {
+                _error = "Could not delete—campaign not found or access denied.";
+                return;
+            }
+
+            Nav.NavigateTo("/campaigns", replace: true);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _deleting = false;
+        }
+    }
+}

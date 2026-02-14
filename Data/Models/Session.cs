@@ -26,6 +26,9 @@ public class Session
     [StringLength(2000)]
     public string? NextSteps { get; set; }
 
+    [StringLength(200)]
+    public string? LocationOrLink { get; set; }
+
     // Navigation
     public Campaign? Campaign { get; set; }
 }
