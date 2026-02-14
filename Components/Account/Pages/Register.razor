@@ -10,6 +10,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IUserStore<ApplicationUser> UserStore
 @inject SignInManager<ApplicationUser> SignInManager
+@inject RoleManager<IdentityRole> RoleManager
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
@@ -42,16 +43,18 @@
                 <label for="Input.ConfirmPassword">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
+            <div class="form-floating mb-3">
+                <InputSelect @bind-Value="Input.AccountType" id="Input.AccountType" class="form-select" aria-required="true">
+                    <option value="Player">Player</option>
+                    <option value="DM">DM</option>
+                </InputSelect>
+                <label for="Input.AccountType">Account Type</label>
+                <ValidationMessage For="() => Input.AccountType" class="text-danger" />
+            </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
         </EditForm>
     </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
+
 </div>
 
 @code {
@@ -84,6 +87,13 @@
             identityErrors = result.Errors;
             return;
         }
+
+        if (!await RoleManager.RoleExistsAsync(Input.AccountType))
+        {
+            await RoleManager.CreateAsync(new IdentityRole(Input.AccountType));
+        }
+        
+        await UserManager.AddToRoleAsync(user, Input.AccountType);
 
         Logger.LogInformation("User created a new account with password.");
 
@@ -148,5 +158,9 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Account Type")]
+        public string AccountType { get; set; } = "Player";
     }
 }

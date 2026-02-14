@@ -38,6 +38,9 @@ public class Character
     [StringLength(2000)]
     public string? Notes { get; set; }
 
+    [StringLength(500)]
+    public string? DndBeyondUrl { get; set; }
+
     // Navigation
     public Campaign? Campaign { get; set; }
 }

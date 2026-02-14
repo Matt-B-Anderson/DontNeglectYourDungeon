@@ -1,6 +1,39 @@
 ﻿@using MudBlazor
 @inherits LayoutComponentBase
 
+<header class="tavern-topbar">
+    <div class="brand">
+        <div class="brand-badge">DND</div>
+        <div class="brand-title">Don't Neglect Your Dungeon</div>
+    </div>
+
+    <div class="topbar-actions">
+        <AuthorizeView>
+            <Authorized>
+                @{
+                    var email = context.User.Identity?.Name ?? "";
+                    var display = email.Contains("@") ? email.Split('@')[0] : email;
+                }
+                <span>@display</span>
+                
+                <a class="btn" href="dev-data-test">Campaigns</a>
+                <a class="btn" href="Account/Manage">Account</a>
+
+                <form action="Account/Logout" method="post" style="display:inline;">
+                    <AntiforgeryToken />
+                    <input type="hidden" name="ReturnUrl" value="" />
+                    <button type="submit" class="btn btn-danger">Logout</button>
+                </form>
+            </Authorized>
+
+            <NotAuthorized>
+                <a class="btn" href="Account/Login">Login</a>
+                <a class="btn" href="Account/Register">Register</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</header>
+
 <div class="tavern-shell">
     <MudProviders Theme="_theme" />
 

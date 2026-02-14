@@ -62,6 +62,7 @@ public class CharacterService(ApplicationDbContext db) : ICharacterService
         existing.Level = character.Level;
         existing.Status = character.Status;
         existing.Notes = character.Notes;
+        existing.DndBeyondUrl = character.DndBeyondUrl;
 
         await db.SaveChangesAsync();
         return true;
