@@ -15,16 +15,6 @@
 <h3>Profile</h3>
 
 
-<AuthorizeView Context="context">
-    <Authorized>
-        <p>
-            <b>Internal User ID:</b>
-            <code>@context.User.FindFirstValue(ClaimTypes.NameIdentifier)</code>
-        </p>
-    </Authorized>
-</AuthorizeView>
-
-
 <StatusMessage />
 
 <div class="row">
