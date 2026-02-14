@@ -1,7 +1,27 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<p class="lead">Welcome to</p>
+<h1>Don't Neglect Your Dungeon</h1>
+<p class="lead">Where you can organize campaigns, sessions, and character info in one place</p>
 
-Welcome to your new app.
+<AuthorizeView>
+    <Authorized>
+        <p>Welcome back, <b>@context.User.Identity?.Name</b>.</p>
+
+        <div class="mt-3">
+            <a class="btn btn-primary me-2" href="dev-data-test">Go to your campaigns</a>
+            <a class="btn btn-outline-light" href="Account/Manage">Account Settings</a>
+        </div>
+
+
+    </Authorized>
+
+    <NotAuthorized>
+        <p>You are not signed in yet. Please sign or register above.</p>
+
+
+    </NotAuthorized>
+</AuthorizeView>

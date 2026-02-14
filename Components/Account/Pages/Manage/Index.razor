@@ -4,6 +4,8 @@
 @using Microsoft.AspNetCore.Identity
 @using DontNeglectYourDungeon.Data
 
+@using System.Security.Claims
+
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
@@ -11,6 +13,18 @@
 <PageTitle>Profile</PageTitle>
 
 <h3>Profile</h3>
+
+
+<AuthorizeView Context="context">
+    <Authorized>
+        <p>
+            <b>Internal User ID:</b>
+            <code>@context.User.FindFirstValue(ClaimTypes.NameIdentifier)</code>
+        </p>
+    </Authorized>
+</AuthorizeView>
+
+
 <StatusMessage />
 
 <div class="row">

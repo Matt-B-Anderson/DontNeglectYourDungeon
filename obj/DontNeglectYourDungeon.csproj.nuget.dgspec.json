@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Web PP\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj": {}
+    "C:\\Users\\ttram\\Documents\\BYU-I Pathway\\BYUI_WORLDWIDE\\CSE325\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj": {}
   },
   "projects": {
-    "D:\\Web PP\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj": {
+    "C:\\Users\\ttram\\Documents\\BYU-I Pathway\\BYUI_WORLDWIDE\\CSE325\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Web PP\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj",
+        "projectUniqueName": "C:\\Users\\ttram\\Documents\\BYU-I Pathway\\BYUI_WORLDWIDE\\CSE325\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj",
         "projectName": "DontNeglectYourDungeon",
-        "projectPath": "D:\\Web PP\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj",
-        "packagesPath": "C:\\Users\\George\\.nuget\\packages\\",
-        "outputPath": "D:\\Web PP\\DontNeglectYourDungeon\\obj\\",
+        "projectPath": "C:\\Users\\ttram\\Documents\\BYU-I Pathway\\BYUI_WORLDWIDE\\CSE325\\DontNeglectYourDungeon\\DontNeglectYourDungeon.csproj",
+        "packagesPath": "C:\\Users\\ttram\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ttram\\Documents\\BYU-I Pathway\\BYUI_WORLDWIDE\\CSE325\\DontNeglectYourDungeon\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\George\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\ttram\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
