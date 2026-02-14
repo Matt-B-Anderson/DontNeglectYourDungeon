@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DontNeglectYourDungeon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260211222410_AddDndEntities")]
-    partial class AddDndEntities
+    [Migration("20260213205214_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -194,6 +194,10 @@ namespace DontNeglectYourDungeon.Migrations
 
                     b.Property<int>("CampaignId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LocationOrLink")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("NextSteps")
                         .HasMaxLength(2000)

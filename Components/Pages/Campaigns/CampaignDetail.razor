@@ -1,9 +1,11 @@
 @page "/campaigns/{CampaignId:int}"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
 
 @using DontNeglectYourDungeon.Data.Models
 @using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ICampaignService CampaignsService
+@inject ISessionService SessionsService
 @inject AuthenticationStateProvider AuthStateProvider
 
 <div class="tavern-header">
@@ -36,13 +38,42 @@
     }
     else
     {
-        @if (!string.IsNullOrWhiteSpace(_campaign.Description))
+        @if (!string.IsNullOrWhiteSpace(_campaign.System))
         {
-            <div class="muted" style="white-space:pre-wrap;">@_campaign.Description</div>
-            <div style="margin-top:1rem;"></div>
+            <div class="muted">
+                <strong>System:</strong> @_campaign.System
+            </div>
         }
 
-        <div style="display:grid; gap:1rem;">
+        @if (!string.IsNullOrWhiteSpace(_campaign.Description))
+        {
+            <div class="muted" style="white-space:pre-wrap; margin-top:.5rem;">@_campaign.Description</div>
+        }
+
+        @if (_upcomingSession is not null)
+        {
+            <div class="tavern-card" style="background: var(--panel2); margin-top:1rem;">
+                <div style="font-weight:800;">📅 Upcoming Session</div>
+                <div style="margin-top:.5rem;">
+                    <div style="font-weight:600;">@_upcomingSession.Title</div>
+                    <div class="muted" style="margin-top:.25rem;">
+                        @_upcomingSession.SessionDate.ToString("dddd, MMMM d, yyyy 'at' h:mm tt")
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(_upcomingSession.LocationOrLink))
+                    {
+                        <div class="muted" style="margin-top:.25rem;">
+                            <strong>Location:</strong> @_upcomingSession.LocationOrLink
+                        </div>
+                    }
+                </div>
+                <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                    <a class="btn" href="@($"/sessions/{_upcomingSession.Id}")">View Details</a>
+                    <a class="btn" href="@($"/sessions/{_upcomingSession.Id}/edit")">Edit</a>
+                </div>
+            </div>
+        }
+
+        <div style="display:grid; gap:1rem; margin-top:1rem;">
             <div class="tavern-card" style="background: var(--panel2);">
                 <div style="font-weight:800;">Sessions</div>
                 <div class="muted" style="margin-top:.25rem;">Schedule and review your adventure log.</div>
@@ -73,6 +104,7 @@
 
     private bool _loading = true;
     private Campaign? _campaign;
+    private Session? _upcomingSession;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -82,6 +114,16 @@
 
         // ✅ Adjust only this call if your teammate used a different name
         _campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
+
+        // Load the upcoming session (next session with date >= now)
+        if (_campaign is not null)
+        {
+            var allSessions = await SessionsService.GetForCampaignAsync(CampaignId, auth.User);
+            _upcomingSession = allSessions
+                .Where(s => s.SessionDate >= DateTime.Now)
+                .OrderBy(s => s.SessionDate)
+                .FirstOrDefault();
+        }
 
         _loading = false;
     }

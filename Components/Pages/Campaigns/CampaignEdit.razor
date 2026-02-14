@@ -1,5 +1,6 @@
 @page "/campaigns/{CampaignId:int}/edit"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using DontNeglectYourDungeon.Data.Models
@@ -44,6 +45,12 @@
                 </div>
 
                 <div>
+                    <label>System (optional)</label>
+                    <InputText @bind-Value="_model.System" placeholder="e.g., D&D 5e, Pathfinder, etc." />
+                    <ValidationMessage For="@(() => _model.System)" />
+                </div>
+
+                <div>
                     <label>Description (optional)</label>
                     <InputTextArea @bind-Value="_model.Description" rows="6" />
                     <ValidationMessage For="@(() => _model.Description)" />
@@ -78,10 +85,13 @@
 
     public class CampaignEditModel
     {
-        [Required, StringLength(100, MinimumLength = 2)]
+        [Required, StringLength(80, MinimumLength = 2)]
         public string Name { get; set; } = "";
 
-        [StringLength(2000)]
+        [StringLength(40)]
+        public string? System { get; set; }
+
+        [StringLength(1000)]
         public string? Description { get; set; }
     }
 
@@ -104,6 +114,7 @@
         }
 
         _model.Name = _campaign.Name;
+        _model.System = _campaign.System;
         _model.Description = _campaign.Description;
 
         _cancelHref = $"/campaigns/{CampaignId}";
@@ -124,6 +135,7 @@
             }
 
             _campaign.Name = _model.Name.Trim();
+            _campaign.System = string.IsNullOrWhiteSpace(_model.System) ? null : _model.System.Trim();
             _campaign.Description = string.IsNullOrWhiteSpace(_model.Description) ? null : _model.Description.Trim();
 
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();

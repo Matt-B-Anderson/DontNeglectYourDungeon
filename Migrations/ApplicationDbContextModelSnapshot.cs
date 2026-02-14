@@ -192,6 +192,10 @@ namespace DontNeglectYourDungeon.Migrations
                     b.Property<int>("CampaignId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("LocationOrLink")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("NextSteps")
                         .HasMaxLength(2000)
                         .HasColumnType("TEXT");

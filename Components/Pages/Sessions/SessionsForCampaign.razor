@@ -1,5 +1,6 @@
 @page "/campaigns/{CampaignId:int}/sessions"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
 
 @using DontNeglectYourDungeon.Data.Models
 @using DontNeglectYourDungeon.Data.Services.Interfaces
@@ -59,8 +60,7 @@
                         </div>
 
                         <div class="muted" style="margin-top:.25rem;">
-                            @session.SessionDate.ToLocalTime()
-                                .ToString("ddd, MMM d · h:mm tt")
+                            @session.SessionDate.ToString("ddd, MMM d 'at' h:mm tt")
                         </div>
 
                         @if (!string.IsNullOrWhiteSpace(session.Summary))

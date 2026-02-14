@@ -1,5 +1,6 @@
 @page "/sessions/{SessionId:int}/edit"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
 @using MudBlazor
 
 @using System.ComponentModel.DataAnnotations
@@ -60,6 +61,12 @@
                 </div>
 
                 <div>
+                    <label>Location / Link (optional)</label>
+                    <InputText @bind-Value="_model.LocationOrLink" />
+                    <ValidationMessage For="@(() => _model.LocationOrLink)" />
+                </div>
+
+                <div>
                     <label>Summary (optional)</label>
                     <InputTextArea @bind-Value="_model.Summary" rows="4" />
                     <ValidationMessage For="@(() => _model.Summary)" />
@@ -109,6 +116,9 @@
         [Required]
         public TimeSpan? ScheduledTime { get; set; } = TimeSpan.FromHours(19);
 
+        [StringLength(200)]
+        public string? LocationOrLink { get; set; }
+
         [StringLength(2000)]
         public string? Summary { get; set; }
 
@@ -134,11 +144,12 @@
 
         _model.Title = _session.Title;
 
-        // NOTE: service stores SessionDate as-is. Don’t force UTC conversion here.
+        // NOTE: service stores SessionDate as-is. Don't force UTC conversion here.
         var local = _session.SessionDate;
         _model.ScheduledDate = local.Date;
         _model.ScheduledTime = local.TimeOfDay;
 
+        _model.LocationOrLink = _session.LocationOrLink;
         _model.Summary = _session.Summary;
         _model.NextSteps = _session.NextSteps;
 
@@ -170,6 +181,7 @@
             // Build/update the session object that UpdateAsync expects:
             _session.Title = _model.Title.Trim();
             _session.SessionDate = scheduledLocal;
+            _session.LocationOrLink = string.IsNullOrWhiteSpace(_model.LocationOrLink) ? null : _model.LocationOrLink.Trim();
             _session.Summary = string.IsNullOrWhiteSpace(_model.Summary) ? null : _model.Summary.Trim();
             _session.NextSteps = string.IsNullOrWhiteSpace(_model.NextSteps) ? null : _model.NextSteps.Trim();
 

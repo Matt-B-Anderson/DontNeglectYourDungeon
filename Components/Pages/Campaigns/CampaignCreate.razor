@@ -1,5 +1,6 @@
 @page "/campaigns/new"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
 @using DontNeglectYourDungeon.Data.Models
@@ -33,6 +34,12 @@
             </div>
 
             <div>
+                <label>System (optional)</label>
+                <InputText @bind-Value="_model.System" placeholder="e.g., D&D 5e, Pathfinder, etc." />
+                <ValidationMessage For="@(() => _model.System)" />
+            </div>
+
+            <div>
                 <label>Description (optional)</label>
                 <InputTextArea @bind-Value="_model.Description" rows="6" />
                 <ValidationMessage For="@(() => _model.Description)" />
@@ -59,10 +66,13 @@
 
     public class CampaignCreateModel
     {
-        [Required, StringLength(100, MinimumLength = 2)]
+        [Required, StringLength(80, MinimumLength = 2)]
         public string Name { get; set; } = "";
 
-        [StringLength(2000)]
+        [StringLength(40)]
+        public string? System { get; set; }
+
+        [StringLength(1000)]
         public string? Description { get; set; }
     }
 
@@ -78,6 +88,7 @@
             var campaign = new Campaign
             {
                 Name = _model.Name.Trim(),
+                System = string.IsNullOrWhiteSpace(_model.System) ? null : _model.System.Trim(),
                 Description = string.IsNullOrWhiteSpace(_model.Description) ? null : _model.Description.Trim()
             };
 

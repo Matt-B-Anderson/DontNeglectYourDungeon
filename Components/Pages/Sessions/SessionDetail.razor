@@ -1,5 +1,6 @@
 @page "/sessions/{SessionId:int}"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
 
 @using DontNeglectYourDungeon.Data.Models
 @using DontNeglectYourDungeon.Data.Services.Interfaces
@@ -13,7 +14,7 @@
         <div>
             <h1 class="h1">@(_session?.Title ?? "Session")</h1>
             <div class="muted">
-                @(_session is null ? "" : _session.SessionDate.ToLocalTime().ToString("ddd, MMM d · h:mm tt"))
+                @(_session is null ? "" : _session.SessionDate.ToString("ddd, MMM d 'at' h:mm tt"))
             </div>
         </div>
     </div>

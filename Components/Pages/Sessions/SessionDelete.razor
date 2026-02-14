@@ -1,5 +1,6 @@
 @page "/sessions/{SessionId:int}/delete"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
 
 @using DontNeglectYourDungeon.Data.Services.Interfaces
 @inject ISessionService SessionsService
