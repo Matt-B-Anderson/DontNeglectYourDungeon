@@ -83,7 +83,8 @@
     protected override async Task OnParametersSetAsync()
     {
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
-        var campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
+        // Allow any campaign member to create character links
+        var campaign = await CampaignsService.GetByIdForMemberAsync(CampaignId, auth.User);
         _noAccess = campaign is null;
         _campaignName = campaign?.Name;
     }
@@ -99,6 +100,7 @@
 
             var link = new LinkedCharacter
             {
+                CampaignId = CampaignId,
                 DisplayName = _model.DisplayName.Trim(),
                 Url = _model.Url.Trim()
             };

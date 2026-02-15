@@ -12,6 +12,9 @@ public class LinkedCharacter
     public int Id { get; set; }
 
     [Required]
+    public int CampaignId { get; set; }
+
+    [Required]
     public string OwnerUserId { get; set; } = "";
 
     [Required, StringLength(80)]
@@ -19,4 +22,7 @@ public class LinkedCharacter
 
     [Required, StringLength(500)]
     public string Url { get; set; } = "";
+
+    // Navigation
+    public Campaign? Campaign { get; set; }
 }

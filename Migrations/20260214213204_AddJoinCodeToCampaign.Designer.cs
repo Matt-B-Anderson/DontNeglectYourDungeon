@@ -3,6 +3,7 @@ using System;
 using DontNeglectYourDungeon.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DontNeglectYourDungeon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260214213204_AddJoinCodeToCampaign")]
+    partial class AddJoinCodeToCampaign
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
@@ -115,40 +118,9 @@ namespace DontNeglectYourDungeon.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("JoinCode")
-                        .IsUnique();
-
                     b.HasIndex("OwnerUserId");
 
                     b.ToTable("Campaigns");
-                });
-
-            modelBuilder.Entity("DontNeglectYourDungeon.Data.Models.CampaignMember", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CampaignId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("JoinedUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CampaignId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("CampaignId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("CampaignMembers");
                 });
 
             modelBuilder.Entity("DontNeglectYourDungeon.Data.Models.Character", b =>
@@ -162,10 +134,6 @@ namespace DontNeglectYourDungeon.Migrations
 
                     b.Property<string>("Class")
                         .HasMaxLength(60)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DndBeyondUrl")
-                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Level")
@@ -202,9 +170,6 @@ namespace DontNeglectYourDungeon.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("CampaignId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -221,8 +186,6 @@ namespace DontNeglectYourDungeon.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CampaignId");
-
                     b.HasIndex("OwnerUserId");
 
                     b.ToTable("LinkedCharacters");
@@ -236,10 +199,6 @@ namespace DontNeglectYourDungeon.Migrations
 
                     b.Property<int>("CampaignId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("CreatedByUserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("LocationOrLink")
                         .HasMaxLength(200)
@@ -264,8 +223,6 @@ namespace DontNeglectYourDungeon.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CampaignId");
-
-                    b.HasIndex("CreatedByUserId");
 
                     b.ToTable("Sessions");
                 });
@@ -419,32 +376,10 @@ namespace DontNeglectYourDungeon.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("DontNeglectYourDungeon.Data.Models.CampaignMember", b =>
-                {
-                    b.HasOne("DontNeglectYourDungeon.Data.Models.Campaign", "Campaign")
-                        .WithMany()
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Campaign");
-                });
-
             modelBuilder.Entity("DontNeglectYourDungeon.Data.Models.Character", b =>
                 {
                     b.HasOne("DontNeglectYourDungeon.Data.Models.Campaign", "Campaign")
                         .WithMany("Characters")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Campaign");
-                });
-
-            modelBuilder.Entity("DontNeglectYourDungeon.Data.Models.LinkedCharacter", b =>
-                {
-                    b.HasOne("DontNeglectYourDungeon.Data.Models.Campaign", "Campaign")
-                        .WithMany("LinkedCharacters")
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -568,8 +503,6 @@ namespace DontNeglectYourDungeon.Migrations
             modelBuilder.Entity("DontNeglectYourDungeon.Data.Models.Campaign", b =>
                 {
                     b.Navigation("Characters");
-
-                    b.Navigation("LinkedCharacters");
 
                     b.Navigation("Sessions");
                 });

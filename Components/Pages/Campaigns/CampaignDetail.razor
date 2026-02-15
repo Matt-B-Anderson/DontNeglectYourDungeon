@@ -18,7 +18,7 @@
     </div>
 
     <div style="display:flex; gap:.5rem;">
-        @if (_campaign is not null)
+        @if (_campaign is not null && _isOwner)
         {
             <a class="btn" href="@($"/campaigns/{CampaignId}/edit")">Edit</a>
             <a class="btn btn-danger" href="@($"/campaigns/{CampaignId}/delete")">Delete</a>
@@ -42,6 +42,21 @@
         {
             <div class="muted">
                 <strong>System:</strong> @_campaign.System
+            </div>
+        }
+
+        @if (_isOwner)
+        {
+            <div class="tavern-card" style="background: var(--panel2); margin-top:1rem;">
+                <div style="font-weight:800;">🔑 Join Code</div>
+                <div class="muted" style="margin-top:.25rem;">
+                    Share this code with your players so they can join your campaign.
+                </div>
+                <div style="margin-top:.5rem;">
+                    <div style="font-size:1.5rem; font-weight:800; letter-spacing:0.2rem; color:var(--accent);">
+                        @_campaign.JoinCode
+                    </div>
+                </div>
             </div>
         }
 
@@ -103,6 +118,7 @@
     [Parameter] public int CampaignId { get; set; }
 
     private bool _loading = true;
+    private bool _isOwner;
     private Campaign? _campaign;
     private Session? _upcomingSession;
 
@@ -112,12 +128,16 @@
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
 
-        // ✅ Adjust only this call if your teammate used a different name
-        _campaign = await CampaignsService.GetOwnedByUserAsync(CampaignId, auth.User);
+        // Allow any campaign member to view (not just owner)
+        _campaign = await CampaignsService.GetByIdForMemberAsync(CampaignId, auth.User);
 
-        // Load the upcoming session (next session with date >= now)
+        // Check if current user is the owner
         if (_campaign is not null)
         {
+            var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            _isOwner = _campaign.OwnerUserId == userId;
+
+            // Load the upcoming session (next session with date >= now)
             var allSessions = await SessionsService.GetForCampaignAsync(CampaignId, auth.User);
             _upcomingSession = allSessions
                 .Where(s => s.SessionDate >= DateTime.Now)

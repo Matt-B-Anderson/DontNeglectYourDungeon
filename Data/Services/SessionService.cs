@@ -13,16 +13,17 @@ public class SessionService(ApplicationDbContext db) : ISessionService
         return user.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new UnauthorizedAccessException("User ID not found.");
     }
-    private async Task<bool> CampaignOwnedByUser(int campaignId, ClaimsPrincipal user)
+    private async Task<bool> UserIsCampaignMember(int campaignId, ClaimsPrincipal user)
     {
         var userId = GetUserId(user);
-        return await db.Campaigns.AnyAsync(c => c.Id == campaignId && c.OwnerUserId == userId);
+        return await db.CampaignMembers.AnyAsync(cm => cm.CampaignId == campaignId && cm.UserId == userId);
     }
 
 
     public async Task<List<Session>> GetForCampaignAsync(int campaignId, ClaimsPrincipal user)
     {
-        if (!await CampaignOwnedByUser(campaignId, user)) return new();
+        // Allow any campaign member to view sessions
+        if (!await UserIsCampaignMember(campaignId, user)) return new();
 
         return await db.Sessions
             .Where(s => s.CampaignId == campaignId)
@@ -35,13 +36,19 @@ public class SessionService(ApplicationDbContext db) : ISessionService
         var session = await db.Sessions.FirstOrDefaultAsync(s => s.Id == sessionId);
         if (session is null) return null;
 
-        return await CampaignOwnedByUser(session.CampaignId, user) ? session : null;
+        // Allow any campaign member to view sessions
+        return await UserIsCampaignMember(session.CampaignId, user) ? session : null;
     }
 
     public async Task<Session> CreateAsync(Session session, ClaimsPrincipal user)
     {
-        if (!await CampaignOwnedByUser(session.CampaignId, user))
-            throw new UnauthorizedAccessException("You do not own this campaign.");
+        var userId = GetUserId(user);
+
+        // Allow any campaign member to create sessions
+        if (!await UserIsCampaignMember(session.CampaignId, user))
+            throw new UnauthorizedAccessException("You are not a member of this campaign.");
+
+        session.CreatedByUserId = userId;
 
         db.Sessions.Add(session);
         await db.SaveChangesAsync();
@@ -50,15 +57,18 @@ public class SessionService(ApplicationDbContext db) : ISessionService
 
     public async Task<bool> UpdateAsync(Session session, ClaimsPrincipal user)
     {
+        var userId = GetUserId(user);
         var existing = await db.Sessions.FirstOrDefaultAsync(s => s.Id == session.Id);
         if (existing is null) return false;
 
-        if (!await CampaignOwnedByUser(existing.CampaignId, user)) return false;
+        // Only allow the creator to edit their session
+        if (existing.CreatedByUserId != userId) return false;
 
         existing.Title = session.Title;
         existing.SessionDate = session.SessionDate;
         existing.Summary = session.Summary;
         existing.NextSteps = session.NextSteps;
+        existing.LocationOrLink = session.LocationOrLink;
 
         await db.SaveChangesAsync();
         return true;
@@ -66,10 +76,12 @@ public class SessionService(ApplicationDbContext db) : ISessionService
 
     public async Task<bool> DeleteAsync(int sessionId, ClaimsPrincipal user)
     {
+        var userId = GetUserId(user);
         var existing = await db.Sessions.FirstOrDefaultAsync(s => s.Id == sessionId);
         if (existing is null) return false;
 
-        if (!await CampaignOwnedByUser(existing.CampaignId, user)) return false;
+        // Only allow the creator to delete their session
+        if (existing.CreatedByUserId != userId) return false;
 
         db.Sessions.Remove(existing);
         await db.SaveChangesAsync();

@@ -21,6 +21,39 @@ public class LinkedCharacterService(ApplicationDbContext db) : ILinkedCharacterS
             .ToListAsync();
     }
 
+    public async Task<List<LinkedCharacter>> GetForCampaignAsync(int campaignId, ClaimsPrincipal user)
+    {
+        var userId = GetUserId(user);
+
+        // Check if user is a campaign member
+        var isMember = await db.CampaignMembers
+            .AnyAsync(cm => cm.CampaignId == campaignId && cm.UserId == userId);
+
+        if (!isMember) return new();
+
+        // Check if user is the campaign owner (DM)
+        var campaign = await db.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId);
+        if (campaign is null) return new();
+
+        bool isDM = campaign.OwnerUserId == userId;
+
+        // DMs see all links for the campaign, players see only their own
+        if (isDM)
+        {
+            return await db.LinkedCharacters
+                .Where(l => l.CampaignId == campaignId)
+                .OrderBy(l => l.DisplayName)
+                .ToListAsync();
+        }
+        else
+        {
+            return await db.LinkedCharacters
+                .Where(l => l.CampaignId == campaignId && l.OwnerUserId == userId)
+                .OrderBy(l => l.DisplayName)
+                .ToListAsync();
+        }
+    }
+
     public async Task<LinkedCharacter> CreateAsync(LinkedCharacter link, ClaimsPrincipal user)
     {
         link.OwnerUserId = GetUserId(user);

@@ -25,7 +25,11 @@ public class Campaign
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 
+    [Required, StringLength(8)]
+    public string JoinCode { get; set; } = "";
+
     // Navigation
     public List<Session> Sessions { get; set; } = new();
     public List<Character> Characters { get; set; } = new();
+    public List<LinkedCharacter> LinkedCharacters { get; set; } = new();
 }

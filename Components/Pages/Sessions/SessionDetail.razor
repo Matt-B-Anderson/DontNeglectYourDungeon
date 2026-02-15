@@ -49,9 +49,13 @@
             <div class="muted">
                 <strong>Location/Link:</strong> @_session.LocationOrLink
             </div>
-            <div style="margin-top:.5rem;">
-                <a class="btn" href="@_session.LocationOrLink" target="_blank" rel="noopener noreferrer">Open</a>
-            </div>
+            @if (_session.LocationOrLink.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                 _session.LocationOrLink.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                <div style="margin-top:.5rem;">
+                    <a class="btn" href="@_session.LocationOrLink" target="_blank" rel="noopener noreferrer">Open</a>
+                </div>
+            }
             <div style="margin-top:1rem;"></div>
         }
 

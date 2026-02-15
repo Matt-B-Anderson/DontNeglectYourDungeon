@@ -11,8 +11,11 @@ public interface ICampaignService
 {
     Task<List<Campaign>> GetForUserAsync(ClaimsPrincipal user);
     Task<Campaign?> GetOwnedByUserAsync(int campaignId, ClaimsPrincipal user);
+    Task<Campaign?> GetByIdForMemberAsync(int campaignId, ClaimsPrincipal user);
 
     Task<Campaign> CreateAsync(Campaign campaign, ClaimsPrincipal user);
     Task<bool> UpdateAsync(Campaign campaign, ClaimsPrincipal user);
     Task<bool> DeleteAsync(int campaignId, ClaimsPrincipal user);
+
+    Task<Campaign?> JoinByCodeAsync(string joinCode, ClaimsPrincipal user);
 }
