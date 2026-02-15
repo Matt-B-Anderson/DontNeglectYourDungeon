@@ -22,8 +22,11 @@
     <div style="display:flex; gap:.5rem;">
         @if (_session is not null)
         {
-            <a class="btn" href="@($"/sessions/{SessionId}/edit")">Edit</a>
-            <a class="btn btn-danger" href="@($"/sessions/{SessionId}/delete")">Delete</a>
+            @if (_session.CreatedByUserId == _currentUserId)
+            {
+                <a class="btn" href="@($"/sessions/{SessionId}/edit")">Edit</a>
+                <a class="btn btn-danger" href="@($"/sessions/{SessionId}/delete")">Delete</a>
+            }
             <a class="btn" href="@($"/campaigns/{_session.CampaignId}/sessions")">Back</a>
         }
         else
@@ -98,6 +101,8 @@
     private bool _loading = true;
     private string _error = string.Empty;
 
+    private string _currentUserId = "";
+
     private Session? _session;
 
     protected override async Task OnParametersSetAsync()
@@ -107,6 +112,7 @@
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
         _session = await SessionsService.GetByIdAsync(SessionId, auth.User);
+        _currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
 
         _loading = false;
     }
