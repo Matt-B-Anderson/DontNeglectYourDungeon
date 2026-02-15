@@ -1,3 +1,17 @@
+@*
+    Character Links Page for a Campaign
+
+    Shows character sheet links (D&D Beyond URLs) for a specific campaign.
+    IMPORTANT PRIVACY: DMs see ALL character links, but players only see THEIR OWN.
+    This lets DMs view player sheets while keeping sheets private between players.
+
+    Authorization:
+    - Only campaign members can view this page
+    - All members can create links for their character
+    - Only link owner can edit/delete their link
+    - DM View: All character links in campaign
+    - Player View: Only their own character links
+*@
 @page "/campaigns/{CampaignId:int}/characters"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @rendermode InteractiveServer
@@ -50,7 +64,9 @@
                         <div class="muted" style="margin-top:.25rem; overflow-wrap:anywhere;">@cl.Url</div>
 
                         <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                            @* Open character sheet in new tab (D&D Beyond) *@
                             <a class="btn" href="@cl.Url" target="_blank" rel="noopener noreferrer">Open</a>
+                            @* Only the link owner can edit/delete their character link *@
                             @if (cl.OwnerUserId == _currentUserId)
                             {
                                 <a class="btn" href="@($"/characters/{cl.Id}/edit?campaignId={CampaignId}")">Edit</a>
@@ -65,8 +81,10 @@
 </div>
 
 @code {
+    // Campaign ID comes from the URL route parameter
     [Parameter] public int CampaignId { get; set; }
 
+    // Component state
     private bool _loading = true;
     private bool _noAccess;
     private bool _isOwner;
@@ -74,6 +92,13 @@
     private string _currentUserId = "";
     private List<LinkedCharacter> _links = new();
 
+    /// <summary>
+    /// Loads character links when page loads or CampaignId parameter changes.
+    /// IMPORTANT: The service layer handles the DM vs Player logic automatically.
+    /// - If user is campaign owner (DM): Returns ALL character links
+    /// - If user is a player: Returns ONLY their own character links
+    /// - If user is not a member: Returns empty list
+    /// </summary>
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
@@ -82,7 +107,7 @@
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
         _currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
 
-        // Allow any campaign member to view (not just owner)
+        // Verify user is a campaign member (owner OR player)
         var campaign = await CampaignsService.GetByIdForMemberAsync(CampaignId, auth.User);
 
         if (campaign is null)
@@ -96,7 +121,7 @@
         _isOwner = campaign.OwnerUserId == _currentUserId;
         _campaignName = campaign.Name;
 
-        // Get campaign-specific character links
+        // Get character links - service layer filters based on user role
         // DMs see all links, players see only their own
         _links = await LinkedCharacterService.GetForCampaignAsync(CampaignId, auth.User);
 

@@ -1,3 +1,15 @@
+@*
+    Sessions List Page for a Campaign
+
+    Shows all game sessions (meetings/play dates) for a specific campaign.
+    Any campaign member can view sessions and create new ones.
+    Only the user who created a session can edit or delete it (not even the DM).
+
+    Authorization:
+    - Only campaign members can view this page
+    - All members can create sessions
+    - Only session creator can edit/delete their session
+*@
 @page "/campaigns/{CampaignId:int}/sessions"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @rendermode InteractiveServer
@@ -80,10 +92,12 @@
                         }
 
                         <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                            @* All campaign members can view session details *@
                             <a class="btn" href="@($"/sessions/{session.Id}")">
                                 View
                             </a>
 
+                            @* Only the user who created this session can edit/delete it *@
                             @if (session.CreatedByUserId == _currentUserId)
                             {
                                 <a class="btn" href="@($"/sessions/{session.Id}/edit")">
@@ -103,15 +117,20 @@
 </div>
 
 @code {
+    // Campaign ID comes from the URL route parameter
     [Parameter] public int CampaignId { get; set; }
 
+    // Component state
     private bool _loading = true;
     private bool _noAccess;
     private string? _campaignName;
     private string _currentUserId = "";
-
     private List<Session> _sessions = new();
 
+    /// <summary>
+    /// Loads sessions when page loads or CampaignId parameter changes.
+    /// Checks if user is a campaign member first - non-members get "no access" message.
+    /// </summary>
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
@@ -120,7 +139,8 @@
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
         _currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
 
-        // Allow any campaign member to view sessions (not just owner)
+        // Verify user is a member of this campaign (owner OR player)
+        // This method returns null if user is not a member
         var campaign = await CampaignsService
             .GetByIdForMemberAsync(CampaignId, auth.User);
 
@@ -134,6 +154,7 @@
 
         _campaignName = campaign.Name;
 
+        // Load all sessions for this campaign (all members see same sessions)
         _sessions = await SessionsService
             .GetForCampaignAsync(CampaignId, auth.User);
 
