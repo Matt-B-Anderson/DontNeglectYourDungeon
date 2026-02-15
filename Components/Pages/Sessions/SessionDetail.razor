@@ -1,3 +1,16 @@
+@*
+    Session Detail Page
+
+    Displays full details of a game session including title, date/time, location/link,
+    summary, and next steps. Any campaign member can view. Only the creator can edit/delete.
+
+    Special Feature: If location is a URL (starts with http/https), shows "Open" button
+    that opens the link in a new tab (useful for Discord/Zoom/Roll20 links).
+
+    Authorization:
+    - Only campaign members can view
+    - Only session creator can edit/delete
+*@
 @page "/sessions/{SessionId:int}"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @rendermode InteractiveServer
@@ -47,11 +60,13 @@
     }
     else
     {
+        @* Show location/link if provided *@
         @if (!string.IsNullOrWhiteSpace(_session.LocationOrLink))
         {
             <div class="muted">
                 <strong>Location/Link:</strong> @_session.LocationOrLink
             </div>
+            @* If location is a URL, show clickable button that opens in new tab *@
             @if (_session.LocationOrLink.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                  _session.LocationOrLink.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
@@ -96,21 +111,27 @@
 </div>
 
 @code {
+    // Session ID comes from URL route parameter
     [Parameter] public int SessionId { get; set; }
 
+    // Component state
     private bool _loading = true;
     private string _error = string.Empty;
-
     private string _currentUserId = "";
-
     private Session? _session;
 
+    /// <summary>
+    /// Loads session details when page loads or SessionId parameter changes.
+    /// GetByIdAsync returns null if session doesn't exist or user is not a campaign member.
+    /// </summary>
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
         _error = string.Empty;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        // Load session (returns null if user is not a member of the campaign)
         _session = await SessionsService.GetByIdAsync(SessionId, auth.User);
         _currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
 

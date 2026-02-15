@@ -1,3 +1,19 @@
+@*
+    Join Campaign Page
+
+    Allows players to join a campaign by entering an 8-character join code.
+    The DM shares this code from their campaign detail page.
+
+    Process:
+    1. User enters 8-character code (e.g., ABC12345)
+    2. System looks up campaign by join code
+    3. If valid, user is added as a campaign member
+    4. User is redirected to campaigns list
+
+    Authorization:
+    - Any authenticated user can access this page
+    - User becomes a campaign member after successful join
+*@
 @page "/campaigns/join"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @rendermode InteractiveServer
@@ -54,18 +70,27 @@
 </div>
 
 @code {
+    // Component state
     private bool _saving;
     private string _error = string.Empty;
     private string _success = string.Empty;
-
     private JoinCampaignModel _model = new();
 
+    /// <summary>
+    /// Form model with validation for the join code input.
+    /// Join codes are always 8 characters (letters and numbers).
+    /// </summary>
     public class JoinCampaignModel
     {
         [Required, StringLength(8, MinimumLength = 8, ErrorMessage = "Join code must be exactly 8 characters.")]
         public string JoinCode { get; set; } = "";
     }
 
+    /// <summary>
+    /// Attempts to join a campaign using the provided join code.
+    /// If successful, user is added as a campaign member and redirected.
+    /// If code is invalid, shows error message.
+    /// </summary>
     private async Task JoinAsync()
     {
         _saving = true;
@@ -75,6 +100,8 @@
         try
         {
             var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+
+            // Try to join by code (returns null if code is invalid)
             var campaign = await CampaignsService.JoinByCodeAsync(_model.JoinCode.Trim().ToUpper(), auth.User);
 
             if (campaign is null)
@@ -83,6 +110,7 @@
                 return;
             }
 
+            // Show success message, then redirect to campaigns list
             _success = $"Successfully joined '{campaign.Name}'! Redirecting...";
             await Task.Delay(1500); // Brief delay to show success message
             Nav.NavigateTo("/campaigns");

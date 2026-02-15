@@ -1,3 +1,15 @@
+@*
+    Campaign Detail Page (Campaign Hub)
+
+    Main overview page for a campaign showing:
+    - Join code (DMs only - used to invite players)
+    - Upcoming session (next scheduled session)
+    - Quick links to Sessions and Character Links
+
+    Authorization:
+    - Any campaign member can view this page
+    - Only campaign owner (DM) sees join code and Edit/Delete buttons
+*@
 @page "/campaigns/{CampaignId:int}"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @rendermode InteractiveServer
@@ -45,6 +57,7 @@
             </div>
         }
 
+        @* Only DMs (campaign owners) can see the join code - players don't need it *@
         @if (_isOwner)
         {
             <div class="tavern-card" style="background: var(--panel2); margin-top:1rem;">
@@ -115,29 +128,35 @@
 </div>
 
 @code {
+    // Campaign ID comes from the URL route parameter
     [Parameter] public int CampaignId { get; set; }
 
+    // Component state
     private bool _loading = true;
     private bool _isOwner;
     private Campaign? _campaign;
     private Session? _upcomingSession;
 
+    /// <summary>
+    /// Loads campaign details and upcoming session when page loads.
+    /// Verifies user is a campaign member (owner OR player).
+    /// Finds the next upcoming session to display in the overview.
+    /// </summary>
     protected override async Task OnParametersSetAsync()
     {
         _loading = true;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
 
-        // Allow any campaign member to view (not just owner)
+        // Verify user is a campaign member (owner OR player)
         _campaign = await CampaignsService.GetByIdForMemberAsync(CampaignId, auth.User);
 
-        // Check if current user is the owner
         if (_campaign is not null)
         {
             var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             _isOwner = _campaign.OwnerUserId == userId;
 
-            // Load the upcoming session (next session with date >= now)
+            // Find the next upcoming session (sessions with date in the future)
             var allSessions = await SessionsService.GetForCampaignAsync(CampaignId, auth.User);
             _upcomingSession = allSessions
                 .Where(s => s.SessionDate >= DateTime.Now)

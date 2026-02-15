@@ -1,4 +1,13 @@
-﻿@page "/"
+﻿@*
+    Home Page / Landing Page
+
+    Welcome page for the application. Shows different content based on authentication:
+    - Authenticated users: Welcome back message with quick link to campaigns
+    - Unauthenticated users: Prompt to sign in or register
+
+    This page is public (AllowAnonymous) so visitors can see it before logging in.
+*@
+@page "/"
 @attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 
 @using Microsoft.AspNetCore.Authorization

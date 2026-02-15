@@ -1,3 +1,14 @@
+@*
+    Campaigns List Page
+
+    Shows all campaigns the current user belongs to (either as DM/owner or as a player who joined).
+    Users can view, create (DM only), edit (owner only), and delete (owner only) campaigns.
+
+    Authorization:
+    - Any authenticated user can view this page
+    - Only users with "DM" role can create new campaigns
+    - Only campaign owners can see Edit/Delete buttons
+*@
 @page "/campaigns"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @rendermode InteractiveServer
@@ -17,7 +28,9 @@
     </div>
 
     <div style="display:flex; gap:.5rem;">
+        @* All users can join campaigns using a code *@
         <a class="btn" href="/campaigns/join">Join Campaign</a>
+        @* Only DMs can create new campaigns *@
         @if (_isDm)
         {
             <a class="btn" href="/campaigns/new">+ New Campaign</a>
@@ -54,7 +67,9 @@
                         </div>
 
                         <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
+                            @* All campaign members can open/view the campaign *@
                             <a class="btn" href="@($"/campaigns/{c.Id}")">Open</a>
+                            @* Only the owner (DM who created it) can edit or delete *@
                             @if (c.OwnerUserId == _currentUserId)
                             {
                                 <a class="btn" href="@($"/campaigns/{c.Id}/edit")">Edit</a>
@@ -69,19 +84,27 @@
 </div>
 
 @code {
+    // Component state
     private bool _loading = true;
     private List<Campaign> _campaigns = new();
     private string _currentUserId = "";
     private bool _isDm = false;
 
+    /// <summary>
+    /// Loads all campaigns for the current user when the page first loads.
+    /// Gets user ID and DM role status to control what buttons are shown.
+    /// GetForUserAsync returns campaigns where user is owner OR member.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         _loading = true;
 
+        // Get current user's ID and role from authentication
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
         _currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
         _isDm = auth.User.IsInRole("DM");
 
+        // Load all campaigns this user owns or joined
         _campaigns = await CampaignsService.GetForUserAsync(auth.User);
 
         _loading = false;
