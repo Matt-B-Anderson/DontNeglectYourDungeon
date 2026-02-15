@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: dont-neglect-your-dungeon
+    env: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:$PORT
+    disk:
+      name: database
+      mountPath: /app/Data
+      sizeGB: 1
