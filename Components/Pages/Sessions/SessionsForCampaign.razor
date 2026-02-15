@@ -50,7 +50,7 @@
     {
         @foreach (var session in _sessions.OrderByDescending(s => s.SessionDate))
         {
-            <div class="tavern-card" style="background: var(--panel2);">
+            <div class="tavern-card" style="background: #352820;">
 
                 <div style="display:flex; justify-content:space-between; gap:1rem;">
                     <div>
@@ -84,13 +84,16 @@
                                 View
                             </a>
 
-                            <a class="btn" href="@($"/sessions/{session.Id}/edit")">
-                                Edit
-                            </a>
+                            @if (session.CreatedByUserId == _currentUserId)
+                            {
+                                <a class="btn" href="@($"/sessions/{session.Id}/edit")">
+                                    Edit
+                                </a>
 
-                            <a class="btn btn-danger" href="@($"/sessions/{session.Id}/delete")">
-                                Delete
-                            </a>
+                                <a class="btn btn-danger" href="@($"/sessions/{session.Id}/delete")">
+                                    Delete
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>
@@ -105,6 +108,7 @@
     private bool _loading = true;
     private bool _noAccess;
     private string? _campaignName;
+    private string _currentUserId = "";
 
     private List<Session> _sessions = new();
 
@@ -114,9 +118,11 @@
         _noAccess = false;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        _currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
 
+        // Allow any campaign member to view sessions (not just owner)
         var campaign = await CampaignsService
-            .GetOwnedByUserAsync(CampaignId, auth.User);
+            .GetByIdForMemberAsync(CampaignId, auth.User);
 
         if (campaign is null)
         {

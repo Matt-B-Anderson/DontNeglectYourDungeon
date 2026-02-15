@@ -16,7 +16,13 @@
         </div>
     </div>
 
-    <a class="btn" href="/campaigns/new">+ New Campaign</a>
+    <div style="display:flex; gap:.5rem;">
+        <a class="btn" href="/campaigns/join">Join Campaign</a>
+        @if (_isDm)
+        {
+            <a class="btn" href="/campaigns/new">+ New Campaign</a>
+        }
+    </div>
 </div>
 
 <div class="tavern-card">
@@ -35,7 +41,7 @@
     {
         @foreach (var c in _campaigns.OrderByDescending(x => x.CreatedUtc))
         {
-            <div class="tavern-card" style="background: var(--panel2);">
+            <div class="tavern-card" style="background: #4a3520;">
                 <div style="display:flex; justify-content:space-between; gap:1rem;">
                     <div>
                         <div style="font-weight:800;">@c.Name</div>
@@ -49,8 +55,11 @@
 
                         <div style="display:flex; gap:.5rem; margin-top:.75rem; flex-wrap:wrap;">
                             <a class="btn" href="@($"/campaigns/{c.Id}")">Open</a>
-                            <a class="btn" href="@($"/campaigns/{c.Id}/edit")">Edit</a>
-                            <a class="btn btn-danger" href="@($"/campaigns/{c.Id}/delete")">Delete</a>
+                            @if (c.OwnerUserId == _currentUserId)
+                            {
+                                <a class="btn" href="@($"/campaigns/{c.Id}/edit")">Edit</a>
+                                <a class="btn btn-danger" href="@($"/campaigns/{c.Id}/delete")">Delete</a>
+                            }
                         </div>
                     </div>
                 </div>
@@ -62,12 +71,16 @@
 @code {
     private bool _loading = true;
     private List<Campaign> _campaigns = new();
+    private string _currentUserId = "";
+    private bool _isDm = false;
 
     protected override async Task OnInitializedAsync()
     {
         _loading = true;
 
         var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        _currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+        _isDm = auth.User.IsInRole("DM");
 
         _campaigns = await CampaignsService.GetForUserAsync(auth.User);
 

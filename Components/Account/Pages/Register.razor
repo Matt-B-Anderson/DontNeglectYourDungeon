@@ -43,12 +43,21 @@
                 <label for="Input.ConfirmPassword">Confirm Password</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
-            <div class="form-floating mb-3">
-                <InputSelect @bind-Value="Input.AccountType" id="Input.AccountType" class="form-select" aria-required="true">
-                    <option value="Player">Player</option>
-                    <option value="DM">DM</option>
-                </InputSelect>
-                <label for="Input.AccountType">Account Type</label>
+            <div class="mb-3">
+                <label class="form-label">Account Type</label>
+ 
+                <InputRadioGroup @bind-Value="Input.AccountType" TValue="string" class="d-flex gap-3">
+                    <div class="form-check">
+                        <InputRadio class="form-check-input" TValue="string" Value="@("Player")" />
+                        <label class="form-check-label">Player</label>
+                    </div>
+ 
+                    <div class="form-check">
+                        <InputRadio class="form-check-input" TValue="string" Value="@("DM")" />
+                        <label class="form-check-label">DM</label>
+                    </div>
+                </InputRadioGroup>
+ 
                 <ValidationMessage For="() => Input.AccountType" class="text-danger" />
             </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>

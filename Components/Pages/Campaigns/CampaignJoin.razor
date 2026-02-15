@@ -1,0 +1,99 @@
+@page "/campaigns/join"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using DontNeglectYourDungeon.Data.Services.Interfaces
+@inject ICampaignService CampaignsService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="tavern-header">
+    <div class="brand">
+        <div class="brand-badge">🔑</div>
+        <div>
+            <h1 class="h1">Join Campaign</h1>
+            <div class="muted">Enter the join code shared by your DM.</div>
+        </div>
+    </div>
+
+    <a class="btn" href="/campaigns">Back</a>
+</div>
+
+<div class="tavern-card">
+    <EditForm Model="_model" OnValidSubmit="@JoinAsync" FormName="JoinCampaign">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div style="display:grid; gap:.75rem;">
+            <div>
+                <label>Join Code</label>
+                <InputText @bind-Value="_model.JoinCode" placeholder="e.g., ABC12345" style="text-transform:uppercase;" />
+                <ValidationMessage For="@(() => _model.JoinCode)" />
+                <div class="muted" style="margin-top:.25rem;">
+                    Enter the 8-character code provided by your Dungeon Master.
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="validation-message">@_error</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_success))
+            {
+                <div style="color: var(--accent); font-weight:600;">@_success</div>
+            }
+
+            <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                <button class="btn" type="submit" disabled="@_saving">Join Campaign</button>
+                <a class="btn" href="/campaigns">Cancel</a>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private bool _saving;
+    private string _error = string.Empty;
+    private string _success = string.Empty;
+
+    private JoinCampaignModel _model = new();
+
+    public class JoinCampaignModel
+    {
+        [Required, StringLength(8, MinimumLength = 8, ErrorMessage = "Join code must be exactly 8 characters.")]
+        public string JoinCode { get; set; } = "";
+    }
+
+    private async Task JoinAsync()
+    {
+        _saving = true;
+        _error = string.Empty;
+        _success = string.Empty;
+
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var campaign = await CampaignsService.JoinByCodeAsync(_model.JoinCode.Trim().ToUpper(), auth.User);
+
+            if (campaign is null)
+            {
+                _error = "Invalid join code. Please check and try again.";
+                return;
+            }
+
+            _success = $"Successfully joined '{campaign.Name}'! Redirecting...";
+            await Task.Delay(1500); // Brief delay to show success message
+            Nav.NavigateTo("/campaigns");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

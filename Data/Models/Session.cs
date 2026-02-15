@@ -14,6 +14,9 @@ public class Session
     [Required]
     public int CampaignId { get; set; }
 
+    [Required]
+    public string CreatedByUserId { get; set; } = "";
+
     [Required, StringLength(100)]
     public string Title { get; set; } = "";
 
